@@ -12,13 +12,7 @@ import { FoundationFixtures } from "./components/FoundationFixtures";
 import { PlaceDetails } from "./components/PlaceDetails";
 import { PlaceList } from "./components/PlaceList";
 import { loadDefaultLayer } from "./data/loadLayer";
-import {
-  globeEngineLabels,
-  readEngine,
-  writeEngine,
-  type GlobeController,
-  type GlobeEngineId
-} from "./globe/types";
+import type { GlobeController } from "./globe/types";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 import type { LoadedLayer, PlaceFeature } from "./types/data";
 import {
@@ -26,6 +20,7 @@ import {
   writeUrlState,
   type CameraState
 } from "./utils/urlState";
+import { markPerformance } from "./utils/performance";
 
 type LoadState =
   | { status: "loading" }
@@ -33,21 +28,14 @@ type LoadState =
   | { status: "error"; message: string };
 
 const initialUrlState = readUrlState(window.location.search);
-const CesiumGlobeView = lazy(async () => {
+const GlobeView = lazy(async () => {
   const module = await import("./components/GlobeView");
   return { default: module.GlobeView };
-});
-const GlobeGlView = lazy(async () => {
-  const module = await import("./components/GlobeGlView");
-  return { default: module.GlobeGlView };
 });
 
 export default function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [query, setQuery] = useState("");
-  const [engine, setEngine] = useState<GlobeEngineId>(() =>
-    readEngine(window.location.search)
-  );
   const [selectedId, setSelectedId] = useState<string | null>(
     initialUrlState.placeId
   );
@@ -56,20 +44,26 @@ export default function App() {
   const [controller, setController] = useState<GlobeController | null>(null);
   const controllerRef = useRef<GlobeController>(null);
   const reducedMotion = useReducedMotion();
-  const ActiveGlobeView =
-    engine === "cesium" ? CesiumGlobeView : GlobeGlView;
 
   useEffect(() => {
-    setGlobeReady(false);
-    setGlobeError(null);
-    setController(null);
-    controllerRef.current = null;
-  }, [engine]);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("engine")) {
+      url.searchParams.delete("engine");
+      window.history.replaceState(
+        null,
+        "",
+        `${url.pathname}${url.search}${url.hash}`
+      );
+    }
+  }, []);
 
   useEffect(() => {
     const abortController = new AbortController();
     loadDefaultLayer(abortController.signal)
-      .then((layer) => setLoadState({ status: "ready", layer }))
+      .then((layer) => {
+        markPerformance("data-ready");
+        setLoadState({ status: "ready", layer });
+      })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setLoadState({
@@ -83,6 +77,16 @@ export default function App() {
 
     return () => abortController.abort();
   }, []);
+
+  useEffect(() => {
+    if (loadState.status !== "ready") return;
+
+    const frame = window.requestAnimationFrame(() => {
+      markPerformance("interface-ready");
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [loadState.status]);
 
   const places = loadState.status === "ready" ? loadState.layer.places : [];
   const selectedPlace = useMemo(
@@ -123,6 +127,7 @@ export default function App() {
   }, []);
 
   const handleGlobeReady = useCallback(() => {
+    markPerformance("globe-ready");
     setGlobeReady(true);
   }, []);
 
@@ -140,16 +145,6 @@ export default function App() {
 
   function handlePlaceSelect(place: PlaceFeature) {
     selectPlace(place.id);
-  }
-
-  function selectEngine(nextEngine: GlobeEngineId) {
-    if (nextEngine === engine) return;
-    setEngine(nextEngine);
-    window.history.replaceState(
-      null,
-      "",
-      writeEngine(window.location.href, nextEngine)
-    );
   }
 
   if (loadState.status === "loading") {
@@ -191,22 +186,10 @@ export default function App() {
           </span>
           <div>
             <p>Orivanta</p>
-            <span>Globe foundation · Phase 0</span>
+            <span>Product skeleton · Phase 1</span>
           </div>
         </div>
         <div className="topbar-tools">
-          <div className="engine-switch" aria-label="Globe engine comparison">
-            {(["globe-gl", "cesium"] as const).map((candidate) => (
-              <button
-                key={candidate}
-                type="button"
-                aria-pressed={engine === candidate}
-                onClick={() => selectEngine(candidate)}
-              >
-                {globeEngineLabels[candidate]}
-              </button>
-            ))}
-          </div>
           <div className="topbar-status">
             <span
               className={`status-dot ${globeReady ? "is-ready" : ""}`}
@@ -215,8 +198,8 @@ export default function App() {
             {globeError
               ? "Text experience available"
               : globeReady
-                ? `${globeEngineLabels[engine]} ready`
-                : `Starting ${globeEngineLabels[engine]}`}
+                ? "Globe ready"
+                : "Starting globe"}
           </div>
         </div>
       </header>
@@ -256,8 +239,7 @@ export default function App() {
                   </div>
                 }
               >
-                <ActiveGlobeView
-                  key={engine}
+                <GlobeView
                   ref={registerController}
                   places={places}
                   selectedId={selectedId}
@@ -275,7 +257,7 @@ export default function App() {
               />
               <FoundationFixtures />
               <div className="globe-hint">
-                <span>{globeEngineLabels[engine]} candidate</span>
+                <span>Globe.gl foundation</span>
                 <span aria-hidden="true">Drag to rotate · Scroll to zoom</span>
               </div>
             </>

@@ -23,11 +23,11 @@ Build a disposable but disciplined prototype with:
 Compare CesiumJS with one lighter candidate, likely Globe.gl/Three.js, using
 the same sample interaction.
 
-**Progress:** Both candidates are working. See the
+**Decision complete:** Both candidates were implemented and compared. See the
 [CesiumJS report](prototypes/CESIUM_PHASE_0.md) and
-[Globe.gl report](prototypes/GLOBE_GL_PHASE_0.md). Both now render the same
-route and polygon fixtures. Broader browser testing, performance measurements,
-and the final scorecard remain.
+[Globe.gl report](prototypes/GLOBE_GL_PHASE_0.md). Globe.gl was selected in
+[ADR 0004](decisions/0004-select-globe-gl.md), and Cesium was removed from the
+production architecture.
 
 ### Exit criteria
 
@@ -130,13 +130,7 @@ not a prerequisite for discovering that value.
 
 ## Immediate backlog
 
-1. Use the versioned Natural Earth Populated Places seed layer to exercise the
-   foundation prototypes.
-2. Agree on the criteria in the
-   [Phase 0 comparison scorecard](ENGINE_SCORECARD.md).
-3. Scaffold the smallest CesiumJS prototype.
-4. Build the equivalent lighter-engine prototype.
-5. Test keyboard and reduced-motion flows.
-6. Measure bundle size, startup time, memory, and interaction smoothness.
-7. Record the globe-engine decision.
-8. Scaffold the durable application only after the comparison.
+1. Add browser smoke tests for the critical keyboard and selection journey.
+2. Add automated accessibility checks.
+3. Configure the first static preview deployment.
+4. Repeat runtime measurements in normal Chrome, Firefox, Safari, and Edge.

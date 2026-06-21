@@ -1,6 +1,6 @@
 # ADR 0001: Provisional Platform Foundation
 
-- **Status:** Proposed
+- **Status:** Superseded by ADR 0004
 - **Date:** 2026-06-20
 - **Review:** End of Phase 0
 

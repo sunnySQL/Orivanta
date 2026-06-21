@@ -25,7 +25,7 @@ export const routeFixtures: readonly RouteFixture[] = [
     id: "fixture:atlantic-crossing",
     name: "Atlantic crossing",
     description:
-      "A synthetic comparison route connecting Lisbon, the Azores, Halifax, and New York.",
+      "A synthetic foundation route connecting Lisbon, the Azores, Halifax, and New York.",
     coordinates: [
       [-9.1393, 38.7223],
       [-25.6666, 37.7412],
@@ -42,7 +42,7 @@ export const polygonFixtures: readonly PolygonFixture[] = [
     properties: {
       name: "Western Mediterranean focus area",
       description:
-        "A synthetic comparison region used to evaluate polygon rendering, transparency, and globe curvature."
+        "A synthetic foundation region used to exercise polygon rendering, transparency, and globe curvature."
     },
     geometry: {
       type: "Polygon",

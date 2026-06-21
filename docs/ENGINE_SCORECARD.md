@@ -3,7 +3,7 @@
 This scorecard prevents the engine decision from being based only on which
 prototype looks most impressive.
 
-The Phase 0 spike compares:
+The Phase 0 spike compared:
 
 - **CesiumJS:** the provisional geospatial-platform choice; and
 - **Globe.gl/Three.js:** the provisional lighter visual-globe choice.
@@ -11,8 +11,8 @@ The Phase 0 spike compares:
 MapLibre GL JS should be added if the first product direction becomes
 map-first or vector-style-first.
 
-**Fixture status:** The shared points, synthetic Atlantic route, and synthetic
-Western Mediterranean polygon are implemented in both candidates.
+**Decision:** Globe.gl was selected on 2026-06-21. See
+[ADR 0004](decisions/0004-select-globe-gl.md).
 
 ## 1. Shared prototype
 
@@ -62,6 +62,20 @@ current product vision and can be changed before testing begins.
 
 The score informs the decision; it does not replace engineering judgment.
 
+### Completed scores
+
+| Category | Weight | CesiumJS | Globe.gl |
+| --- | ---: | ---: | ---: |
+| Accessible integration | 20% | 4 | 4 |
+| Performance | 20% | 3 | 4 |
+| Layer extensibility | 15% | 5 | 4 |
+| Interaction quality | 10% | 3 | 5 |
+| Bundle and delivery cost | 10% | 2 | 5 |
+| Engineering simplicity | 10% | 3 | 4 |
+| Long-term capability | 10% | 5 | 4 |
+| Licensing and portability | 5% | 5 | 5 |
+| **Weighted result** | **100%** | **3.70 / 5** | **4.25 / 5** |
+
 ## 4. Measurement record
 
 Record at least:
@@ -71,7 +85,7 @@ Record at least:
 | Lazy engine JavaScript, gzip | 1,087.11 KB | 508.85 KB |
 | Shared application JavaScript, gzip | 65.34 KB | 65.34 KB |
 | Engine-specific static support assets | ~8.9 MB directory | 244.68 KB texture |
-| Total initial transfer | TBD | TBD |
+| Comparison-build total static output | ~15 MB | ~15 MB |
 | Time to useful interface | TBD | TBD |
 | Time to interactive globe | TBD | TBD |
 | Mobile peak memory | TBD | TBD |
@@ -83,6 +97,11 @@ Record at least:
 
 Describe the test device, operating system, browser, network profile, build
 mode, and measurement method beside the results.
+
+The selected single-engine production build is 2.4 MB across 9 files. A
+reproducible timing attempt in the in-app Chromium environment ended in a
+renderer crash, so timing, memory, and frame-rate fields remain explicitly
+unclaimed until they are repeated in normal browser sessions.
 
 ## 5. Qualitative questions
 
@@ -99,13 +118,12 @@ mode, and measurement method beside the results.
 
 ## 6. Decision output
 
-At the end of the spike:
+The spike produced:
 
-1. Complete the evidence and scores.
-2. Write a short recommendation with the most important tradeoff.
-3. Update ADR 0001 from `Proposed` to `Accepted`, or create a superseding ADR.
-4. Preserve measurements and screenshots.
-5. Scaffold the durable application with the selected engine.
+1. Completed evidence and weighted scores.
+2. An accepted Globe.gl recommendation in ADR 0004.
+3. Preserved prototype reports and build measurements.
+4. A single-engine application behind the project-owned adapter boundary.
 
 Do not merge both engines into the production architecture as a hedge. The
 adapter preserves options without making the application carry two rendering

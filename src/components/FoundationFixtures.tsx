@@ -3,7 +3,7 @@ import { polygonFixtures, routeFixtures } from "../globe/fixtures";
 export function FoundationFixtures() {
   return (
     <details className="fixture-summary">
-      <summary>Engine comparison layers</summary>
+      <summary>Foundation geometry layers</summary>
       <dl>
         {routeFixtures.map((route) => (
           <div key={route.id}>

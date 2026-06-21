@@ -1,18 +1,6 @@
-import {
-  Cartesian2,
-  Cartesian3,
-  Color,
-  ConstantProperty,
-  DistanceDisplayCondition,
-  EllipsoidTerrainProvider,
-  Entity,
-  HeightReference,
-  LabelStyle,
-  Math as CesiumMath,
-  TileMapServiceImageryProvider,
-  Viewer,
-  buildModuleUrl
-} from "cesium";
+import Globe, { type GlobeInstance } from "globe.gl";
+import { SRGBColorSpace } from "three";
+import earthTextureUrl from "../../node_modules/three-globe/example/img/earth-day.jpg?url";
 import {
   forwardRef,
   useEffect,
@@ -23,32 +11,81 @@ import type {
   GlobeController,
   GlobeViewProps
 } from "../globe/types";
-import { polygonFixtures, routeFixtures } from "../globe/fixtures";
-import type { CameraState } from "../utils/urlState";
+import {
+  polygonFixtures,
+  routeFixtures,
+  type LongitudeLatitude,
+  type PolygonFixture,
+  type RouteFixture
+} from "../globe/fixtures";
 import type { PlaceFeature } from "../types/data";
+import type { CameraState } from "../utils/urlState";
 
+const EARTH_RADIUS_METERS = 6_371_000;
 const HOME_CAMERA: CameraState = {
   longitude: 8,
   latitude: 18,
   height: 22_000_000
 };
 
-const DEFAULT_POINT = Color.fromCssColorString("#f6bf67");
-const SELECTED_POINT = Color.fromCssColorString("#7ee8fa");
+function heightToAltitude(height: number): number {
+  return Math.max(0.12, height / EARTH_RADIUS_METERS);
+}
 
-function flyDuration(reducedMotion: boolean): number {
-  return reducedMotion ? 0 : 1.2;
+function altitudeToHeight(altitude: number): number {
+  return altitude * EARTH_RADIUS_METERS;
+}
+
+function placeFromObject(value: object): PlaceFeature {
+  return value as PlaceFeature;
+}
+
+function pointLatitude(value: object): number {
+  return placeFromObject(value).geometry.coordinates[1];
+}
+
+function pointLongitude(value: object): number {
+  return placeFromObject(value).geometry.coordinates[0];
+}
+
+function pointLabel(value: object): HTMLElement {
+  const place = placeFromObject(value);
+  const label = document.createElement("span");
+  label.textContent = `${place.properties.name} — ${place.properties.countryName}`;
+  return label;
+}
+
+function routeFromObject(value: object): RouteFixture {
+  return value as RouteFixture;
+}
+
+function polygonFromObject(value: object): PolygonFixture {
+  return value as PolygonFixture;
+}
+
+function coordinateFromObject(value: object): LongitudeLatitude {
+  return value as unknown as LongitudeLatitude;
+}
+
+function fixtureLabel(name: string, description: string): HTMLElement {
+  const label = document.createElement("span");
+  const title = document.createElement("strong");
+  const detail = document.createElement("span");
+  title.textContent = name;
+  detail.textContent = ` — ${description}`;
+  label.append(title, detail);
+  return label;
 }
 
 function publishCamera(
-  viewer: Viewer,
+  globe: GlobeInstance,
   onCameraChange: (camera: CameraState) => void
 ) {
-  const position = viewer.camera.positionCartographic;
+  const pointOfView = globe.pointOfView();
   onCameraChange({
-    longitude: CesiumMath.toDegrees(position.longitude),
-    latitude: CesiumMath.toDegrees(position.latitude),
-    height: position.height
+    longitude: pointOfView.lng,
+    latitude: pointOfView.lat,
+    height: altitudeToHeight(pointOfView.altitude)
   });
 }
 
@@ -68,373 +105,288 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
   ) {
     const containerRef = useRef<HTMLDivElement>(null);
     const interactionRef = useRef<HTMLDivElement>(null);
-    const viewerRef = useRef<Viewer | null>(null);
-    const entitiesRef = useRef(new Map<string, Entity>());
-    const previousSelectionRef = useRef<string | null>(null);
+    const globeRef = useRef<GlobeInstance | null>(null);
+    const selectedIdRef = useRef(selectedId);
     const reducedMotionRef = useRef(reducedMotion);
+    selectedIdRef.current = selectedId;
     reducedMotionRef.current = reducedMotion;
 
     useImperativeHandle(
       ref,
       () => ({
         home() {
-          const viewer = viewerRef.current;
-          if (!viewer) return;
-          viewer.camera.flyTo({
-            destination: Cartesian3.fromDegrees(
-              HOME_CAMERA.longitude,
-              HOME_CAMERA.latitude,
-              HOME_CAMERA.height
-            ),
-            duration: flyDuration(reducedMotionRef.current)
-          });
+          const globe = globeRef.current;
+          if (!globe) return;
+          globe.pointOfView(
+            {
+              lat: HOME_CAMERA.latitude,
+              lng: HOME_CAMERA.longitude,
+              altitude: heightToAltitude(HOME_CAMERA.height)
+            },
+            reducedMotionRef.current ? 0 : 850
+          );
         },
         zoomIn() {
-          const viewer = viewerRef.current;
-          if (!viewer) return;
-          viewer.camera.zoomIn(
-            Math.max(viewer.camera.positionCartographic.height * 0.3, 50_000)
-          );
-          publishCamera(viewer, onCameraChange);
+          const globe = globeRef.current;
+          if (!globe) return;
+          const current = globe.pointOfView();
+          globe.pointOfView({
+            altitude: Math.max(0.16, current.altitude * 0.72)
+          });
+          publishCamera(globe, onCameraChange);
         },
         zoomOut() {
-          const viewer = viewerRef.current;
-          if (!viewer) return;
-          viewer.camera.zoomOut(
-            Math.max(viewer.camera.positionCartographic.height * 0.3, 50_000)
-          );
-          publishCamera(viewer, onCameraChange);
+          const globe = globeRef.current;
+          if (!globe) return;
+          const current = globe.pointOfView();
+          globe.pointOfView({
+            altitude: Math.min(4.5, current.altitude * 1.38)
+          });
+          publishCamera(globe, onCameraChange);
         },
         move(longitudeDelta, latitudeDelta) {
-          const viewer = viewerRef.current;
-          if (!viewer) return;
-          const current = viewer.camera.positionCartographic;
-          const longitude = CesiumMath.toDegrees(current.longitude);
-          const latitude = CesiumMath.toDegrees(current.latitude);
-          viewer.camera.setView({
-            destination: Cartesian3.fromDegrees(
-              longitude + longitudeDelta,
-              Math.max(-85, Math.min(85, latitude + latitudeDelta)),
-              current.height
-            )
+          const globe = globeRef.current;
+          if (!globe) return;
+          const current = globe.pointOfView();
+          globe.pointOfView({
+            lng: current.lng + longitudeDelta,
+            lat: Math.max(-85, Math.min(85, current.lat + latitudeDelta))
           });
-          publishCamera(viewer, onCameraChange);
+          publishCamera(globe, onCameraChange);
         },
         focus() {
           interactionRef.current?.focus();
         }
       }),
-      []
+      [onCameraChange]
     );
 
     useEffect(() => {
       const container = containerRef.current;
       if (!container) return;
-      const target = container;
 
       let disposed = false;
-      let viewer: Viewer | null = null;
-      const entityMap = new Map<string, Entity>();
 
-      async function initialize() {
-        try {
-          viewer = new Viewer(target, {
-            animation: false,
-            baseLayer: false,
-            baseLayerPicker: false,
-            fullscreenButton: false,
-            geocoder: false,
-            homeButton: false,
-            infoBox: false,
-            navigationHelpButton: false,
-            sceneModePicker: false,
-            selectionIndicator: false,
-            scene3DOnly: true,
-            requestRenderMode: true,
-            maximumRenderTimeChange: Number.POSITIVE_INFINITY,
-            timeline: false,
-            terrainProvider: new EllipsoidTerrainProvider()
-          });
-
-          if (disposed) {
-            viewer.destroy();
-            return;
+      try {
+        const globe = new Globe(container, {
+          animateIn: !reducedMotion,
+          waitForGlobeReady: true,
+          rendererConfig: {
+            alpha: false,
+            antialias: true,
+            powerPreference: "high-performance"
           }
-
-          viewerRef.current = viewer;
-          viewer.scene.globe.enableLighting = true;
-          viewer.scene.globe.showGroundAtmosphere = true;
-          viewer.scene.fog.enabled = true;
-          viewer.scene.highDynamicRange = true;
-          viewer.scene.screenSpaceCameraController.minimumZoomDistance = 80_000;
-          viewer.scene.screenSpaceCameraController.maximumZoomDistance =
-            30_000_000;
-
-          const imagery = await TileMapServiceImageryProvider.fromUrl(
-            buildModuleUrl("Assets/Textures/NaturalEarthII")
-          );
-
-          if (disposed || viewer.isDestroyed()) {
-            return;
-          }
-          viewer.imageryLayers.addImageryProvider(imagery);
-
-          for (const route of routeFixtures) {
-            viewer.entities.add({
-              id: route.id,
-              name: route.name,
-              description: route.description,
-              polyline: {
-                positions: Cartesian3.fromDegreesArray(
-                  route.coordinates.flatMap(([longitude, latitude]) => [
-                    longitude,
-                    latitude
-                  ])
-                ),
-                width: 4,
-                material: Color.fromCssColorString("#7ee8fa")
-              }
-            });
-          }
-
-          for (const polygon of polygonFixtures) {
-            const outerRing = polygon.geometry.coordinates[0] ?? [];
-            viewer.entities.add({
-              id: polygon.id,
-              name: polygon.properties.name,
-              description: polygon.properties.description,
-              polygon: {
-                hierarchy: Cartesian3.fromDegreesArray(
-                  outerRing.flatMap(([longitude, latitude]) => [
-                    longitude,
-                    latitude
-                  ])
-                ),
-                material: Color.fromCssColorString("#f6bf67").withAlpha(0.24),
-                outline: true,
-                outlineColor: Color.fromCssColorString("#f6bf67")
-              }
-            });
-          }
-
-          for (const place of places) {
-            const [longitude, latitude] = place.geometry.coordinates;
-            const isNational = place.properties.capitalLevel === "national";
-            const entity = viewer.entities.add({
-              id: place.id,
-              name: place.properties.name,
-              position: Cartesian3.fromDegrees(longitude, latitude),
-              point: {
-                pixelSize: isNational ? 8 : 6,
-                color: DEFAULT_POINT,
-                outlineColor: Color.fromCssColorString("#07111f"),
-                outlineWidth: 2,
-                heightReference: HeightReference.NONE,
-                disableDepthTestDistance: Number.POSITIVE_INFINITY
-              },
-              label: {
-                text: place.properties.name,
-                font: "600 14px system-ui",
-                fillColor: Color.WHITE,
-                outlineColor: Color.fromCssColorString("#07111f"),
-                outlineWidth: 4,
-                style: LabelStyle.FILL_AND_OUTLINE,
-                pixelOffset: new Cartesian2(0, -18),
-                distanceDisplayCondition: new DistanceDisplayCondition(
-                  0,
-                  isNational ? 6_500_000 : 2_500_000
-                ),
-                disableDepthTestDistance: Number.POSITIVE_INFINITY
-              }
-            });
-            entityMap.set(place.id, entity);
-          }
-
-          entitiesRef.current = entityMap;
-
-          viewer.selectedEntityChanged.addEventListener((entity) => {
-            if (!entity) {
-              onSelect(null);
-              return;
-            }
-
-            if (entityMap.has(entity.id)) {
-              onSelect(entity.id);
-            }
-          });
-
-          viewer.camera.moveEnd.addEventListener(() => {
-            const position = viewer?.camera.positionCartographic;
-            if (!position) return;
-            onCameraChange({
-              longitude: CesiumMath.toDegrees(position.longitude),
-              latitude: CesiumMath.toDegrees(position.latitude),
-              height: position.height
-            });
-          });
-
-          const camera = initialCamera ?? HOME_CAMERA;
-          viewer.camera.setView({
-            destination: Cartesian3.fromDegrees(
-              camera.longitude,
-              camera.latitude,
-              camera.height
-            )
-          });
-
-          if (selectedId) {
-            const selectedEntity = entityMap.get(selectedId);
-            const selectedPlace = places.find(
-              (place) => place.id === selectedId
+        })
+          .width(container.clientWidth)
+          .height(container.clientHeight)
+          .backgroundColor("#02050a")
+          .globeImageUrl(earthTextureUrl)
+          .showAtmosphere(true)
+          .atmosphereColor("#7ee8fa")
+          .atmosphereAltitude(0.16)
+          .pointsData(places)
+          .pointLat(pointLatitude)
+          .pointLng(pointLongitude)
+          .pointColor((value) => {
+            const place = placeFromObject(value);
+            return place.id === selectedIdRef.current
+              ? "#7ee8fa"
+              : place.properties.capitalLevel === "national"
+                ? "#f6bf67"
+                : "#d8a969";
+          })
+          .pointAltitude((value) =>
+            placeFromObject(value).id === selectedIdRef.current ? 0.035 : 0.012
+          )
+          .pointRadius((value) => {
+            const place = placeFromObject(value);
+            if (place.id === selectedIdRef.current) return 0.38;
+            return place.properties.capitalLevel === "national" ? 0.2 : 0.13;
+          })
+          .pointResolution(10)
+          .pointsTransitionDuration(reducedMotion ? 0 : 350)
+          .pointLabel(pointLabel)
+          .onPointClick((value) => onSelect(placeFromObject(value).id))
+          .pathsData([...routeFixtures])
+          .pathPoints((value) => routeFromObject(value).coordinates)
+          .pathPointLng((value) => coordinateFromObject(value)[0])
+          .pathPointLat((value) => coordinateFromObject(value)[1])
+          .pathColor(() => "#7ee8fa")
+          .pathStroke(0.38)
+          .pathPointAlt(0.018)
+          .pathDashLength(0.7)
+          .pathDashGap(0.18)
+          .pathDashAnimateTime(reducedMotion ? 0 : 4_800)
+          .pathLabel((value) => {
+            const route = routeFromObject(value);
+            return fixtureLabel(route.name, route.description);
+          })
+          .polygonsData([...polygonFixtures])
+          .polygonCapColor(() => "rgba(246, 191, 103, 0.24)")
+          .polygonSideColor(() => "rgba(246, 191, 103, 0.08)")
+          .polygonStrokeColor(() => "#f6bf67")
+          .polygonAltitude(0.008)
+          .polygonLabel((value) => {
+            const polygon = polygonFromObject(value);
+            return fixtureLabel(
+              polygon.properties.name,
+              polygon.properties.description
             );
-            viewer.selectedEntity = selectedEntity;
-            if (selectedEntity?.point) {
-              selectedEntity.point.color = new ConstantProperty(SELECTED_POINT);
-              selectedEntity.point.pixelSize = new ConstantProperty(14);
-            }
-            if (selectedPlace) {
-              const [longitude, latitude] = selectedPlace.geometry.coordinates;
-              viewer.camera.setView({
-                destination: Cartesian3.fromDegrees(
-                  longitude,
-                  latitude,
-                  1_800_000
-                )
-              });
-            }
-            previousSelectionRef.current = selectedId;
-          }
+          })
+          .onGlobeClick(() => onSelect(null))
+          .onZoom(() => {
+            if (!disposed) publishCamera(globe, onCameraChange);
+          })
+          .onGlobeReady(() => {
+            if (!disposed) onReady();
+          });
 
-          onReady();
-        } catch (error) {
-          console.error("Globe initialization failed.", error);
-          onError(
-            error instanceof Error ? error.message : "The globe could not start."
-          );
-        }
+        globeRef.current = globe;
+        globe.renderer().outputColorSpace = SRGBColorSpace;
+        globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+
+        const controls = globe.controls();
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.rotateSpeed = 0.42;
+        controls.zoomSpeed = 0.75;
+        controls.minDistance = 112;
+        controls.maxDistance = 570;
+
+        const camera = initialCamera ?? HOME_CAMERA;
+        globe.pointOfView({
+          lat: camera.latitude,
+          lng: camera.longitude,
+          altitude: heightToAltitude(camera.height)
+        });
+
+        const resizeObserver = new ResizeObserver(([entry]) => {
+          if (!entry || disposed) return;
+          globe
+            .width(Math.max(1, entry.contentRect.width))
+            .height(Math.max(1, entry.contentRect.height));
+        });
+        resizeObserver.observe(container);
+
+        const handleVisibility = () => {
+          if (document.hidden) globe.pauseAnimation();
+          else globe.resumeAnimation();
+        };
+        document.addEventListener("visibilitychange", handleVisibility);
+
+        return () => {
+          disposed = true;
+          document.removeEventListener("visibilitychange", handleVisibility);
+          resizeObserver.disconnect();
+          globeRef.current = null;
+          globe._destructor();
+        };
+      } catch (error) {
+        console.error("Globe.gl initialization failed.", error);
+        onError(
+          error instanceof Error
+            ? error.message
+            : "The lighter globe could not start."
+        );
       }
-
-      void initialize();
-
-      return () => {
-        disposed = true;
-        entitiesRef.current = new Map();
-        viewerRef.current = null;
-        if (viewer && !viewer.isDestroyed()) {
-          viewer.destroy();
-        }
-      };
     }, [
       initialCamera,
       onCameraChange,
       onError,
       onReady,
       onSelect,
-      places
+      places,
+      reducedMotion
     ]);
 
     useEffect(() => {
-      const viewer = viewerRef.current;
-      if (!viewer) return;
+      const globe = globeRef.current;
+      if (!globe) return;
 
-      const previousId = previousSelectionRef.current;
-      const previousEntity = previousId
-        ? entitiesRef.current.get(previousId)
-        : undefined;
-      if (previousEntity?.point) {
-        previousEntity.point.color = new ConstantProperty(DEFAULT_POINT);
-        previousEntity.point.pixelSize = new ConstantProperty(
-          previousId &&
-            places.find((place) => place.id === previousId)?.properties
-              .capitalLevel === "national"
-            ? 8
-            : 6
+      globe
+        .pointColor((value) => {
+          const place = placeFromObject(value);
+          return place.id === selectedId
+            ? "#7ee8fa"
+            : place.properties.capitalLevel === "national"
+              ? "#f6bf67"
+              : "#d8a969";
+        })
+        .pointAltitude((value) =>
+          placeFromObject(value).id === selectedId ? 0.035 : 0.012
+        )
+        .pointRadius((value) => {
+          const place = placeFromObject(value);
+          if (place.id === selectedId) return 0.38;
+          return place.properties.capitalLevel === "national" ? 0.2 : 0.13;
+        });
+
+      const selectedPlace = selectedId
+        ? places.find((place) => place.id === selectedId)
+        : null;
+
+      globe
+        .ringsData(selectedPlace && !reducedMotion ? [selectedPlace] : [])
+        .ringLat(pointLatitude)
+        .ringLng(pointLongitude)
+        .ringColor(() => ["#7ee8fa", "rgba(126, 232, 250, 0)"])
+        .ringMaxRadius(2.8)
+        .ringPropagationSpeed(1.4)
+        .ringRepeatPeriod(750);
+
+      if (selectedPlace) {
+        const [longitude, latitude] = selectedPlace.geometry.coordinates;
+        globe.pointOfView(
+          { lat: latitude, lng: longitude, altitude: 0.72 },
+          reducedMotion ? 0 : 900
         );
       }
-
-      const entity = selectedId
-        ? entitiesRef.current.get(selectedId)
-        : undefined;
-      viewer.selectedEntity = entity;
-
-      if (entity?.point) {
-        entity.point.color = new ConstantProperty(SELECTED_POINT);
-        entity.point.pixelSize = new ConstantProperty(14);
-        const place = places.find((candidate) => candidate.id === selectedId);
-        if (place) {
-          const [longitude, latitude] = place.geometry.coordinates;
-          viewer.camera.flyTo({
-            destination: Cartesian3.fromDegrees(longitude, latitude, 1_800_000),
-            duration: flyDuration(reducedMotion)
-          });
-        }
-      }
-
-      previousSelectionRef.current = selectedId;
     }, [places, reducedMotion, selectedId]);
 
     function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-      const controller = {
-        ArrowLeft: () => refMove(-6, 0),
-        ArrowRight: () => refMove(6, 0),
-        ArrowUp: () => refMove(0, 5),
-        ArrowDown: () => refMove(0, -5),
-        "+": () => refZoom(true),
-        "=": () => refZoom(true),
-        "-": () => refZoom(false),
-        h: () => refHome(),
-        H: () => refHome()
-      }[event.key];
+      const globe = globeRef.current;
+      if (!globe) return;
 
-      if (controller) {
+      const current = globe.pointOfView();
+      const actions: Record<string, () => void> = {
+        ArrowLeft: () => globe.pointOfView({ lng: current.lng - 6 }, 0),
+        ArrowRight: () => globe.pointOfView({ lng: current.lng + 6 }, 0),
+        ArrowUp: () =>
+          globe.pointOfView({ lat: Math.min(85, current.lat + 5) }, 0),
+        ArrowDown: () =>
+          globe.pointOfView({ lat: Math.max(-85, current.lat - 5) }, 0),
+        "+": () =>
+          globe.pointOfView({
+            altitude: Math.max(0.16, current.altitude * 0.72)
+          }),
+        "=": () =>
+          globe.pointOfView({
+            altitude: Math.max(0.16, current.altitude * 0.72)
+          }),
+        "-": () =>
+          globe.pointOfView({
+            altitude: Math.min(4.5, current.altitude * 1.38)
+          }),
+        h: () =>
+          globe.pointOfView({
+            lat: HOME_CAMERA.latitude,
+            lng: HOME_CAMERA.longitude,
+            altitude: heightToAltitude(HOME_CAMERA.height)
+          }),
+        H: () =>
+          globe.pointOfView({
+            lat: HOME_CAMERA.latitude,
+            lng: HOME_CAMERA.longitude,
+            altitude: heightToAltitude(HOME_CAMERA.height)
+          })
+      };
+
+      const action = actions[event.key];
+      if (action) {
         event.preventDefault();
-        controller();
+        action();
+        publishCamera(globe, onCameraChange);
       }
-    }
-
-    function refMove(longitudeDelta: number, latitudeDelta: number) {
-      const viewer = viewerRef.current;
-      if (!viewer) return;
-      const current = viewer.camera.positionCartographic;
-      viewer.camera.setView({
-        destination: Cartesian3.fromDegrees(
-          CesiumMath.toDegrees(current.longitude) + longitudeDelta,
-          Math.max(
-            -85,
-            Math.min(
-              85,
-              CesiumMath.toDegrees(current.latitude) + latitudeDelta
-            )
-          ),
-          current.height
-        )
-      });
-      publishCamera(viewer, onCameraChange);
-    }
-
-    function refZoom(zoomIn: boolean) {
-      const viewer = viewerRef.current;
-      if (!viewer) return;
-      const amount = Math.max(
-        viewer.camera.positionCartographic.height * 0.3,
-        50_000
-      );
-      if (zoomIn) viewer.camera.zoomIn(amount);
-      else viewer.camera.zoomOut(amount);
-      publishCamera(viewer, onCameraChange);
-    }
-
-    function refHome() {
-      const viewer = viewerRef.current;
-      if (!viewer) return;
-      viewer.camera.flyTo({
-        destination: Cartesian3.fromDegrees(
-          HOME_CAMERA.longitude,
-          HOME_CAMERA.latitude,
-          HOME_CAMERA.height
-        ),
-        duration: flyDuration(reducedMotion)
-      });
     }
 
     return (

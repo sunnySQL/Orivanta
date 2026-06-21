@@ -1,6 +1,6 @@
 # CesiumJS Phase 0 Prototype
 
-- **Status:** Working candidate
+- **Status:** Archived comparison candidate; not selected
 - **Updated:** 2026-06-21
 - **Engine:** CesiumJS 1.142.0
 - **Dataset:** Natural Earth Populated Places 5.1.2
@@ -93,11 +93,12 @@ Additional deployment facts:
 - The production Content Security Policy must temporarily permit
   `unsafe-eval` for this candidate.
 
-## Remaining Phase 0 work
+## Decision
 
-1. Collect comparable startup, memory, and frame-rate measurements.
-2. Test current Firefox, Safari, and Edge in addition to the in-app Chromium
-   environment.
-3. Run structured screen-reader and forced-colors checks.
-4. Complete the engine scorecard and decide whether Cesium's advanced
-   capabilities justify its delivery cost.
+Globe.gl was selected for Orivanta's foundation in
+[ADR 0004](../decisions/0004-select-globe-gl.md). CesiumJS and its static
+support assets were removed from the production architecture.
+
+This report remains as evidence for the Phase 0 comparison and as a reference
+if terrain, 3D Tiles, photogrammetry, or precision geospatial analysis later
+become validated product requirements.

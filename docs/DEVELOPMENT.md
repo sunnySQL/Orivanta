@@ -93,7 +93,7 @@ essay.
 - **Manual tests:** interaction quality, screen readers, touch, visual
   clarity, and lower-powered hardware.
 
-Do not test CesiumJS or browser behavior that the project does not own. Test
+Do not test Globe.gl or browser behavior that the project does not own. Test
 our adapter and user-visible outcomes.
 
 ## 7. Data workflow

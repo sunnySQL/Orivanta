@@ -1,7 +1,9 @@
 import { createRoot } from "react-dom/client";
-import "cesium/Build/Cesium/Widgets/widgets.css";
 import App from "./App";
 import "./styles.css";
+import { markPerformance } from "./utils/performance";
+
+markPerformance("app-start");
 
 const root = document.getElementById("root");
 

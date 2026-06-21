@@ -38,7 +38,7 @@ The core browsing experience must not depend on the optional API.
 | --- | --- | --- |
 | Language | TypeScript | Safer contracts for layers, data, and application state |
 | Interface | React | Mature component model and accessibility ecosystem |
-| Globe | CesiumJS, provisional | Geospatial focus, time data, terrain, imagery, and large-data formats |
+| Globe | Globe.gl with Three.js | Lighter delivery and strong fit for visual exploration and storytelling |
 | Build | Vite | Fast development and optimized static output |
 | Packages | pnpm | Efficient installs and useful supply-chain controls |
 | Unit tests | Vitest | Fits the Vite and TypeScript toolchain |

@@ -19,7 +19,6 @@
     "check": "node tools/data/build-populated-places.mjs && node tools/data/build-catalog.mjs && node tools/data/validate-datasets.mjs && tsc --noEmit && vitest run && vite build"
   },
   "dependencies": {
-    "cesium": "1.142.0",
     "globe.gl": "2.46.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",

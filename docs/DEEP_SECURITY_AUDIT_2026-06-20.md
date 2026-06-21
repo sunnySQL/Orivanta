@@ -171,19 +171,15 @@ Permissions Policy, HSTS, and cross-origin headers.
    tools, and their dependencies execute with the developer account's file
    permissions. Run locked installs, review updates, and avoid unreviewed
    package commands.
-2. **Two globe engines increase attack surface.** Remove Cesium and its 8.9 MB
-   support tree after the engine decision if Globe.gl remains the product
-   choice.
-3. **The CSP temporarily permits inline styles, JavaScript evaluation, and
-   WebAssembly evaluation.** These are currently needed to run the Cesium
-   comparison candidate. Re-test and remove permissions that are no longer
-   needed after choosing one engine.
-4. **External tiles change the privacy model.** Visitors' IP addresses and map
+2. **Inline styles and WebAssembly evaluation remain permitted.** Re-test and
+   remove permissions that are no longer needed as the selected engine and UI
+   mature.
+3. **External tiles change the privacy model.** Visitors' IP addresses and map
    locations may be visible to a tile provider. Prefer self-hosted tiles or a
    reviewed provider and document the behavior.
-5. **Accounts, uploads, payments, or precise user location require a new
+4. **Accounts, uploads, payments, or precise user location require a new
    threat model.** They should not be added under this static-app assessment.
-6. **License inventory remains a separate release task.** The pnpm license
+5. **License inventory remains a separate release task.** The pnpm license
    command encountered a local package-index error, although this does not
    affect the vulnerability or integrity checks above.
 
@@ -200,3 +196,12 @@ npm run check
 Additional source, secret, lifecycle-script, lockfile-resolution, production
 bundle, CSP, and browser-API searches were performed with `rg`, `find`, and
 targeted bundle inspection.
+
+## 9. Post-audit foundation update
+
+On 2026-06-21, Orivanta selected Globe.gl and removed CesiumJS:
+
+- 26 packages were removed from the locked dependency graph;
+- the approximately 8.9 MB Cesium support tree was removed;
+- production output dropped to 2.4 MB across 9 files; and
+- JavaScript `unsafe-eval` was removed from the Content Security Policy.

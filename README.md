@@ -11,11 +11,10 @@ Backend services are added only when a feature genuinely requires them.
 
 ## Current status
 
-The project is in Phase 0. Both CesiumJS and Globe.gl candidates now run
-against the same versioned Natural Earth layer, accessible place browser,
-keyboard controls, details, shareable URL state, and shared route and polygon
-fixtures. Globe.gl is currently the stronger provisional fit for the visual
-storytelling direction.
+Phase 0 is complete and Orivanta has entered the Phase 1 product-skeleton
+stage. Globe.gl is the selected foundation engine and runs against a versioned
+Natural Earth layer, accessible place browser, keyboard controls, details,
+shareable URL state, and route and polygon fixtures.
 
 ## Run locally
 
@@ -48,8 +47,7 @@ locked with pnpm; npm is only invoking the project's local development script.
 
 - TypeScript
 - React for the application interface
-- Globe.gl as the current front-runner, with CesiumJS retained only for the
-  Phase 0 comparison
+- Globe.gl with Three.js as the selected globe engine
 - Vite for development and production builds
 - pnpm for dependency management
 - Vitest and Playwright for testing
@@ -76,9 +74,9 @@ accessibility integration, and performance.
 - [Architecture decision 0001](docs/decisions/0001-platform-foundation.md)
 - [Dataset decision 0002](docs/decisions/0002-foundation-seed-dataset.md)
 - [Product-name decision 0003](docs/decisions/0003-orivanta-product-name.md)
+- [Globe-engine decision 0004](docs/decisions/0004-select-globe-gl.md)
 
 ## Next action
 
-Record comparable performance and browser evidence in the
-[scorecard](docs/ENGINE_SCORECARD.md), then complete the engine decision before
-scaffolding the durable application.
+Add browser smoke tests and automated accessibility checks around the selected
+single-engine foundation.

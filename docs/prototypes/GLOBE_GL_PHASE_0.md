@@ -1,6 +1,6 @@
 # Globe.gl Phase 0 Prototype
 
-- **Status:** Working candidate
+- **Status:** Selected foundation engine
 - **Updated:** 2026-06-21
 - **Engine:** Globe.gl 2.46.1 with Three.js 0.184.0
 - **Dataset:** Natural Earth Populated Places 5.1.2
@@ -87,15 +87,16 @@ Compared with the Cesium candidate:
   but its original provenance must be confirmed or replaced before product
   launch.
 
-## Current direction
+## Decision
 
-For the product experience currently demonstrated—an interactive globe with
-curated points, stories, routes, and approachable exploration—Globe.gl is the
-stronger provisional fit.
+Globe.gl was selected in [ADR 0004](../decisions/0004-select-globe-gl.md) for
+the product experience currently demonstrated: an interactive globe with
+curated points, stories, routes, regions, and approachable exploration.
 
 Cesium remains the stronger choice if the product direction commits to
 terrain, high-precision geospatial analysis, large 3D Tiles datasets, or
 advanced time-dynamic mapping.
 
-The final engine decision still needs comparable performance measurements plus
-broader browser and accessibility testing.
+Runtime measurements and broader browser and accessibility testing remain
+quality work for the selected engine, not blockers to carrying two rendering
+stacks.
