@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "layers": [
+    {
+      "id": "natural-earth-populated-places",
+      "version": "5.1.2-project.1",
+      "title": "World Populated Places",
+      "description": "A global sample of capitals and selected significant cities for Orivanta foundation testing.",
+      "manifestPath": "layers/natural-earth-populated-places/layer.json",
+      "defaultVisible": true
+    }
+  ]
+}

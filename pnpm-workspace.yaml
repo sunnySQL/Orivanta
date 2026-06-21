@@ -1,0 +1,16 @@
+packages:
+  - .
+
+allowBuilds: {}
+blockExoticSubdeps: true
+minimumReleaseAge: 1440
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
+savePrefix: ''
+strictDepBuilds: true
+strictPeerDependencies: true
+trustLockfile: false
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 525600
+verifyDepsBeforeRun: error
+verifyStoreIntegrity: true

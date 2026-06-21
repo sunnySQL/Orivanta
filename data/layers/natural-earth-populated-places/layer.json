@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "natural-earth-populated-places",
+  "version": "5.1.2-project.1",
+  "title": "World Populated Places",
+  "description": "A global sample of capitals and selected significant cities for Orivanta foundation testing.",
+  "license": {
+    "name": "Public Domain",
+    "url": "https://www.naturalearthdata.com/about/terms-of-use/"
+  },
+  "attribution": "Made with Natural Earth.",
+  "source": {
+    "publisher": "Natural Earth",
+    "dataset": "Populated Places (Simple)",
+    "version": "5.1.2",
+    "scale": "1:110m",
+    "url": "https://www.naturalearthdata.com/downloads/110m-cultural-vectors/110m-populated-places/",
+    "downloadUrl": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_110m_populated_places_simple.geojson",
+    "retrievedOn": "2026-06-20",
+    "sha256": "0dbd25c9ad8bd797ddf164b067f563be5c16be2c002254eb594862377963f9dc"
+  },
+  "data": {
+    "path": "places.geojson",
+    "format": "GeoJSON",
+    "geometryTypes": [
+      "Point"
+    ],
+    "featureCount": 243,
+    "bounds": [
+      -175.220564,
+      -41.292068,
+      179.216647,
+      64.143459
+    ],
+    "bytes": 133822,
+    "sha256": "0bada49653c708496baa50d605eb6cc904532276b32b1ac7f705ea7fc7acf617"
+  },
+  "presentation": {
+    "defaultVisible": true,
+    "minimumZoomProperty": "ranking.minimumZoom",
+    "labelProperty": "name"
+  },
+  "accessibility": {
+    "listLabel": "World populated places",
+    "itemLabelTemplate": "{name}, {countryName}",
+    "descriptionProperty": "description"
+  },
+  "limitations": [
+    "This is a cartographic selection of globally significant places, not a complete list of world settlements.",
+    "Population values are broad Natural Earth estimates and must not be presented as current official census counts.",
+    "The 1:110m scale is intended for global views and does not provide street- or neighborhood-level precision.",
+    "Names, administrative status, and geopolitical representation reflect the pinned Natural Earth release and may change over time."
+  ]
+}

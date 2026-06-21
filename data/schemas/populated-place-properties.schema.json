@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orivanta.invalid/schemas/populated-place-properties.schema.json",
+  "title": "Orivanta Populated Place Properties",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "nameAscii",
+    "countryName",
+    "countryCode",
+    "regionName",
+    "placeType",
+    "capitalLevel",
+    "population",
+    "ranking",
+    "description",
+    "sourceId"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nameAscii": {
+      "type": "string",
+      "minLength": 1
+    },
+    "countryName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "countryCode": {
+      "type": ["string", "null"],
+      "pattern": "^[A-Z]{2}$"
+    },
+    "regionName": {
+      "type": ["string", "null"]
+    },
+    "placeType": {
+      "enum": [
+        "national-capital",
+        "national-capital-alternate",
+        "national-region-capital",
+        "regional-capital",
+        "regional-region-capital",
+        "populated-place"
+      ]
+    },
+    "capitalLevel": {
+      "enum": ["national", "regional", null]
+    },
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumEstimate", "maximumEstimate"],
+      "properties": {
+        "minimumEstimate": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "maximumEstimate": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scaleRank", "labelRank", "minimumZoom"],
+      "properties": {
+        "scaleRank": {
+          "type": "number",
+          "minimum": 0
+        },
+        "labelRank": {
+          "type": "number",
+          "minimum": 0
+        },
+        "minimumZoom": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceId": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

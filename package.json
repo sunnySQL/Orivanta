@@ -1,0 +1,40 @@
+{
+  "name": "orivanta",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.3",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "node tools/data/build-populated-places.mjs && node tools/data/build-catalog.mjs && node tools/data/validate-datasets.mjs && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "data:build": "node tools/data/build-populated-places.mjs && node tools/data/build-catalog.mjs && node tools/data/validate-datasets.mjs",
+    "data:check": "node tools/data/validate-datasets.mjs",
+    "check": "node tools/data/build-populated-places.mjs && node tools/data/build-catalog.mjs && node tools/data/validate-datasets.mjs && tsc --noEmit && vitest run && vite build"
+  },
+  "dependencies": {
+    "cesium": "1.142.0",
+    "globe.gl": "2.46.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "three": "0.184.0",
+    "three-globe": "2.45.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@types/three": "0.184.1",
+    "@vitejs/plugin-react": "6.0.2",
+    "jsdom": "29.1.1",
+    "typescript": "6.0.3",
+    "vite": "8.0.16",
+    "vite-plugin-static-copy": "4.1.1",
+    "vitest": "4.1.9"
+  }
+}
