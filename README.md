@@ -43,7 +43,7 @@ locked with pnpm; npm is only invoking the project's local development script.
 - **Progressive:** a simple first release should remain the foundation of a
   larger service.
 
-## Proposed foundation
+## Selected foundation
 
 - TypeScript
 - React for the application interface
@@ -54,9 +54,8 @@ locked with pnpm; npm is only invoking the project's local development script.
 - Cloudflare Pages for the initial deployment
 - Cloudflare Workers, storage, and a database only when required
 
-The globe-engine decision is intentionally provisional. It will be confirmed
-after an early implementation spike compares capability, bundle size,
-accessibility integration, and performance.
+The globe-engine comparison is complete and the decision is documented in
+[ADR 0004](docs/decisions/0004-select-globe-gl.md).
 
 ## Documentation
 
