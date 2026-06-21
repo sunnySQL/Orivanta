@@ -25,8 +25,9 @@ the same sample interaction.
 
 **Progress:** Both candidates are working. See the
 [CesiumJS report](prototypes/CESIUM_PHASE_0.md) and
-[Globe.gl report](prototypes/GLOBE_GL_PHASE_0.md). Route and polygon fixtures,
-broader browser testing, and the final scorecard remain.
+[Globe.gl report](prototypes/GLOBE_GL_PHASE_0.md). Both now render the same
+route and polygon fixtures. Broader browser testing, performance measurements,
+and the final scorecard remain.
 
 ### Exit criteria
 

@@ -490,6 +490,77 @@ p {
   text-transform: uppercase;
 }
 
+.fixture-summary {
+  position: absolute;
+  z-index: 5;
+  top: 4.8rem;
+  right: 1.25rem;
+  width: min(18rem, calc(100% - 2.5rem));
+  border: 1px solid var(--line-strong);
+  border-radius: 0.7rem;
+  color: var(--text);
+  background: rgba(7, 17, 31, 0.9);
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.fixture-summary summary {
+  padding: 0.7rem 0.85rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.fixture-summary[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.fixture-summary dl {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0.85rem;
+}
+
+.fixture-summary dl div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.fixture-summary dt {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.fixture-summary dd {
+  margin: 0 0 0 1.55rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.fixture-swatch {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 0.45rem;
+}
+
+.fixture-route {
+  height: 0;
+  border-top: 2px dashed var(--accent);
+}
+
+.fixture-polygon {
+  border: 1px solid var(--accent-warm);
+  background: rgba(246, 191, 103, 0.24);
+}
+
 .globe-hint {
   position: absolute;
   z-index: 4;
@@ -773,6 +844,12 @@ p {
   .globe-controls {
     left: 1rem;
     bottom: 1rem;
+  }
+
+  .fixture-summary {
+    top: 4.5rem;
+    right: 1rem;
+    width: min(17rem, calc(100% - 2rem));
   }
 }
 

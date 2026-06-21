@@ -11,6 +11,9 @@ The Phase 0 spike compares:
 MapLibre GL JS should be added if the first product direction becomes
 map-first or vector-style-first.
 
+**Fixture status:** The shared points, synthetic Atlantic route, and synthetic
+Western Mediterranean polygon are implemented in both candidates.
+
 ## 1. Shared prototype
 
 Each candidate must implement the same small experience:
@@ -65,8 +68,8 @@ Record at least:
 
 | Measurement | CesiumJS | Globe.gl/Three.js |
 | --- | --- | --- |
-| Lazy engine JavaScript, gzip | 1,087.13 KB | 508.59 KB |
-| Shared application JavaScript, gzip | 64.70 KB | 64.70 KB |
+| Lazy engine JavaScript, gzip | 1,087.11 KB | 508.85 KB |
+| Shared application JavaScript, gzip | 65.34 KB | 65.34 KB |
 | Engine-specific static support assets | ~8.9 MB directory | 244.68 KB texture |
 | Total initial transfer | TBD | TBD |
 | Time to useful interface | TBD | TBD |

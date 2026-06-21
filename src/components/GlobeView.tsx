@@ -23,6 +23,7 @@ import type {
   GlobeController,
   GlobeViewProps
 } from "../globe/types";
+import { polygonFixtures, routeFixtures } from "../globe/fixtures";
 import type { CameraState } from "../utils/urlState";
 import type { PlaceFeature } from "../types/data";
 
@@ -177,6 +178,44 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
             return;
           }
           viewer.imageryLayers.addImageryProvider(imagery);
+
+          for (const route of routeFixtures) {
+            viewer.entities.add({
+              id: route.id,
+              name: route.name,
+              description: route.description,
+              polyline: {
+                positions: Cartesian3.fromDegreesArray(
+                  route.coordinates.flatMap(([longitude, latitude]) => [
+                    longitude,
+                    latitude
+                  ])
+                ),
+                width: 4,
+                material: Color.fromCssColorString("#7ee8fa")
+              }
+            });
+          }
+
+          for (const polygon of polygonFixtures) {
+            const outerRing = polygon.geometry.coordinates[0] ?? [];
+            viewer.entities.add({
+              id: polygon.id,
+              name: polygon.properties.name,
+              description: polygon.properties.description,
+              polygon: {
+                hierarchy: Cartesian3.fromDegreesArray(
+                  outerRing.flatMap(([longitude, latitude]) => [
+                    longitude,
+                    latitude
+                  ])
+                ),
+                material: Color.fromCssColorString("#f6bf67").withAlpha(0.24),
+                outline: true,
+                outlineColor: Color.fromCssColorString("#f6bf67")
+              }
+            });
+          }
 
           for (const place of places) {
             const [longitude, latitude] = place.geometry.coordinates;

@@ -174,9 +174,10 @@ Permissions Policy, HSTS, and cross-origin headers.
 2. **Two globe engines increase attack surface.** Remove Cesium and its 8.9 MB
    support tree after the engine decision if Globe.gl remains the product
    choice.
-3. **The CSP still permits inline styles and WebAssembly evaluation.** These
-   are currently needed by the candidate engines. Re-test and remove
-   permissions that are no longer needed after choosing one engine.
+3. **The CSP temporarily permits inline styles, JavaScript evaluation, and
+   WebAssembly evaluation.** These are currently needed to run the Cesium
+   comparison candidate. Re-test and remove permissions that are no longer
+   needed after choosing one engine.
 4. **External tiles change the privacy model.** Visitors' IP addresses and map
    locations may be visible to a tile provider. Prefer self-hosted tiles or a
    reviewed provider and document the behavior.

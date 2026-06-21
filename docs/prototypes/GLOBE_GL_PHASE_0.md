@@ -1,7 +1,7 @@
 # Globe.gl Phase 0 Prototype
 
 - **Status:** Working candidate
-- **Date:** 2026-06-20
+- **Updated:** 2026-06-21
 - **Engine:** Globe.gl 2.46.1 with Three.js 0.184.0
 - **Dataset:** Natural Earth Populated Places 5.1.2
 
@@ -18,6 +18,7 @@ application should ship one selected globe engine, not both.
 
 - Draggable and zoomable Three.js globe.
 - 243 selectable place points with restrained global marker sizing.
+- A shared synthetic Atlantic route and Western Mediterranean polygon.
 - Brighter day texture, atmosphere, selection highlight, and animated ring.
 - Pointer, touch, explicit-button, and keyboard controls.
 - Search, semantic place list, details, and provenance shared with Cesium.
@@ -31,25 +32,27 @@ application should ship one selected globe engine, not both.
 
 - Dataset build and validation pass.
 - TypeScript strict-mode compilation passes.
-- Eleven unit tests pass.
+- Fourteen unit tests pass.
 - Production Vite build passes.
 - Desktop browser verification completed at 1280 × 720.
 - Mobile browser verification completed at 390 × 844.
 - Search, selection, camera flight, details, URL updates, and both directions
   of engine switching were exercised.
+- Shared route and polygon rendering were visually verified in the production
+  preview.
 - The development server starts successfully with `npm run dev`.
 - No console errors were observed after removing duplicate WebGL mounting in
   React development mode.
 
 ## Current build measurements
 
-These measurements come from the production build on 2026-06-20.
+These measurements come from the production build on 2026-06-21.
 
 | Artifact | Minified | Gzip |
 | --- | ---: | ---: |
-| Shared application JavaScript | 205.11 KB | 64.70 KB |
-| Shared CSS | 34.51 KB | 8.08 KB |
-| Globe.gl/Three.js chunk | 1,798.72 KB | 508.59 KB |
+| Shared application JavaScript | 206.85 KB | 65.34 KB |
+| Shared CSS | 35.58 KB | 8.30 KB |
+| Globe.gl/Three.js chunk | 1,799.60 KB | 508.85 KB |
 | Shared geometry chunk | 18.41 KB | 5.99 KB |
 | Day texture | 244.68 KB | JPEG |
 | Place GeoJSON | 133.82 KB | 19.17 KB |
@@ -94,5 +97,5 @@ Cesium remains the stronger choice if the product direction commits to
 terrain, high-precision geospatial analysis, large 3D Tiles datasets, or
 advanced time-dynamic mapping.
 
-The final engine decision still needs route and polygon fixtures plus broader
-browser and accessibility testing.
+The final engine decision still needs comparable performance measurements plus
+broader browser and accessibility testing.

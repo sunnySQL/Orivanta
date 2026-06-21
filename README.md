@@ -13,8 +13,9 @@ Backend services are added only when a feature genuinely requires them.
 
 The project is in Phase 0. Both CesiumJS and Globe.gl candidates now run
 against the same versioned Natural Earth layer, accessible place browser,
-keyboard controls, details, and shareable URL state. Globe.gl is currently the
-stronger provisional fit for the visual storytelling direction.
+keyboard controls, details, shareable URL state, and shared route and polygon
+fixtures. Globe.gl is currently the stronger provisional fit for the visual
+storytelling direction.
 
 ## Run locally
 
@@ -78,6 +79,6 @@ accessibility integration, and performance.
 
 ## Next action
 
-Add shared route and polygon fixtures described in the
+Record comparable performance and browser evidence in the
 [scorecard](docs/ENGINE_SCORECARD.md), then complete the engine decision before
 scaffolding the durable application.

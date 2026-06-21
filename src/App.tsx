@@ -8,6 +8,7 @@ import {
   useState
 } from "react";
 import { GlobeControls } from "./components/GlobeControls";
+import { FoundationFixtures } from "./components/FoundationFixtures";
 import { PlaceDetails } from "./components/PlaceDetails";
 import { PlaceList } from "./components/PlaceList";
 import { loadDefaultLayer } from "./data/loadLayer";
@@ -272,6 +273,7 @@ export default function App() {
                 controller={controller}
                 onFocusGlobe={() => controllerRef.current?.focus()}
               />
+              <FoundationFixtures />
               <div className="globe-hint">
                 <span>{globeEngineLabels[engine]} candidate</span>
                 <span aria-hidden="true">Drag to rotate · Scroll to zoom</span>
