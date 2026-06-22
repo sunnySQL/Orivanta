@@ -11,10 +11,12 @@ Backend services are added only when a feature genuinely requires them.
 
 ## Current status
 
-Phase 0 is complete and Orivanta has entered the Phase 1 product-skeleton
-stage. Globe.gl is the selected foundation engine and runs against a versioned
-Natural Earth layer, accessible place browser, keyboard controls, details,
-shareable URL state, and route and polygon fixtures.
+Phase 0 is complete and Orivanta is now in its Phase 1 product-foundation
+stage. Globe.gl is the selected foundation engine and runs inside a
+polished spatial-intelligence workspace with a versioned Natural Earth layer,
+accessible place directory, category filters, keyboard controls, live camera
+readouts, configurable overlays, rich place details, random exploration, and
+shareable URL state.
 
 ## Run locally
 
@@ -77,5 +79,6 @@ The globe-engine comparison is complete and the decision is documented in
 
 ## Next action
 
-Configure the first immutable static preview deployment, then repeat runtime
+Publish the polished workspace as an immutable Cloudflare Pages staging
+preview, verify its production headers and caching, then repeat runtime
 measurements in current desktop and mobile browsers.

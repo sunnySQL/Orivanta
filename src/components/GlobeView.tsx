@@ -96,6 +96,8 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       selectedId,
       initialCamera,
       reducedMotion,
+      showRoutes,
+      showRegions,
       onSelect,
       onCameraChange,
       onReady,
@@ -125,6 +127,7 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
             },
             reducedMotionRef.current ? 0 : 850
           );
+          publishCamera(globe, onCameraChange);
         },
         zoomIn() {
           const globe = globeRef.current;
@@ -207,7 +210,7 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
           .pointsTransitionDuration(reducedMotion ? 0 : 350)
           .pointLabel(pointLabel)
           .onPointClick((value) => onSelect(placeFromObject(value).id))
-          .pathsData([...routeFixtures])
+          .pathsData(showRoutes ? [...routeFixtures] : [])
           .pathPoints((value) => routeFromObject(value).coordinates)
           .pathPointLng((value) => coordinateFromObject(value)[0])
           .pathPointLat((value) => coordinateFromObject(value)[1])
@@ -221,7 +224,7 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
             const route = routeFromObject(value);
             return fixtureLabel(route.name, route.description);
           })
-          .polygonsData([...polygonFixtures])
+          .polygonsData(showRegions ? [...polygonFixtures] : [])
           .polygonCapColor(() => "rgba(246, 191, 103, 0.24)")
           .polygonSideColor(() => "rgba(246, 191, 103, 0.08)")
           .polygonStrokeColor(() => "#f6bf67")
@@ -259,6 +262,7 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
           lng: camera.longitude,
           altitude: heightToAltitude(camera.height)
         });
+        publishCamera(globe, onCameraChange);
 
         const resizeObserver = new ResizeObserver(([entry]) => {
           if (!entry || disposed) return;
@@ -298,6 +302,15 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       places,
       reducedMotion
     ]);
+
+    useEffect(() => {
+      const globe = globeRef.current;
+      if (!globe) return;
+
+      globe
+        .pathsData(showRoutes ? [...routeFixtures] : [])
+        .polygonsData(showRegions ? [...polygonFixtures] : []);
+    }, [showRegions, showRoutes]);
 
     useEffect(() => {
       const globe = globeRef.current;

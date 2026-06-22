@@ -16,6 +16,8 @@ export interface GlobeViewProps {
   selectedId: string | null;
   initialCamera: CameraState | null;
   reducedMotion: boolean;
+  showRoutes: boolean;
+  showRegions: boolean;
   onSelect: (id: string | null) => void;
   onCameraChange: (camera: CameraState) => void;
   onReady: () => void;

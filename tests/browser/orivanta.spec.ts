@@ -48,6 +48,10 @@ test("searches, selects, shares, and closes a place", async ({ page }) => {
   ).toBeVisible();
   await expect(chicago).not.toHaveAttribute("aria-current", "true");
   await expect(page).not.toHaveURL(/[?&]place=/);
+
+  await page.getByRole("button", { name: "Clear place search" }).click();
+  await expect(search).toHaveValue("");
+  await expect(page.getByText("243 places available.")).toBeVisible();
 });
 
 test("supports keyboard globe movement and shareable camera state", async ({
@@ -69,6 +73,18 @@ test("supports keyboard globe movement and shareable camera state", async ({
   await keyboardButton.click();
   await expect(globe).toBeFocused();
 
+  const heightBeforeZoom = new URL(page.url()).searchParams.get("height");
+  await page.getByRole("button", { name: "Zoom in" }).click();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("height"))
+    .not.toBe(heightBeforeZoom);
+
+  const heightAfterZoomIn = new URL(page.url()).searchParams.get("height");
+  await page.getByRole("button", { name: "Zoom out" }).click();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("height"))
+    .not.toBe(heightAfterZoomIn);
+
   const longitudeBefore = new URL(page.url()).searchParams.get("lon");
   await globe.press("ArrowRight");
 
@@ -77,6 +93,14 @@ test("supports keyboard globe movement and shareable camera state", async ({
     .not.toBe(longitudeBefore);
   await expect(page).toHaveURL(/[?&]lat=/);
   await expect(page).toHaveURL(/[?&]height=/);
+
+  await page.getByRole("button", { name: "Return to global view" }).click();
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("lon"))
+    .toBe("8.000");
+  await expect
+    .poll(() => new URL(page.url()).searchParams.get("lat"))
+    .toBe("18.000");
 });
 
 test("removes the retired engine query parameter", async ({ page }) => {
@@ -86,4 +110,114 @@ test("removes the retired engine query parameter", async ({ page }) => {
     page.getByRole("heading", { name: "World places" })
   ).toBeVisible();
   await expect(page).not.toHaveURL(/[?&]engine=/);
+});
+
+test("filters places and can reset an empty result", async ({ page }) => {
+  await page.goto("/");
+
+  const capitals = page.getByRole("button", { name: "Capitals" });
+  const allPlaces = page.getByRole("button", { name: "All", exact: true });
+  const search = page.getByRole("searchbox", { name: "Search places" });
+
+  await capitals.click();
+  await expect(capitals).toHaveAttribute("aria-pressed", "true");
+
+  await search.fill("Chicago");
+  await expect(page.getByText("No places found")).toBeVisible();
+
+  await page.getByRole("button", { name: "Reset filters" }).click();
+  await expect(allPlaces).toHaveAttribute("aria-pressed", "true");
+  await expect(search).toHaveValue("");
+  await expect(page.getByRole("button", { name: /^Chicago/ })).toBeVisible();
+});
+
+test("operates workspace help, layers, random exploration, and sharing", async ({
+  context,
+  page
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+    origin: "http://127.0.0.1:4173"
+  });
+  await page.goto("/");
+
+  await page
+    .getByRole("button", { name: "Open keyboard shortcuts" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Keyboard shortcuts" })
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Close keyboard shortcuts" })
+    .click();
+
+  await page.locator("summary").filter({ hasText: "Layers" }).click();
+  const routes = page.getByRole("checkbox", { name: /Global routes/ });
+  const regions = page.getByRole("checkbox", { name: /Focus regions/ });
+  await expect(routes).toBeChecked();
+  await expect(regions).toBeChecked();
+  await routes.uncheck();
+  await regions.uncheck();
+  await expect(routes).not.toBeChecked();
+  await expect(regions).not.toBeChecked();
+
+  await page
+    .locator("header")
+    .getByRole("button", { name: "Explore a random place" })
+    .click();
+  await expect(page).toHaveURL(/[?&]place=/);
+  await expect(
+    page.getByRole("button", { name: "Close place details" })
+  ).toBeVisible();
+
+  const randomPlaceUrl = page.url();
+  await page.getByRole("button", { name: "Next place" }).click();
+  await expect.poll(() => page.url()).not.toBe(randomPlaceUrl);
+
+  const placeBeforeShare = new URL(page.url()).searchParams.get("place");
+  await page.getByRole("button", { name: "Share this view" }).click();
+  await expect(page.getByText("Copied", { exact: true })).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => navigator.clipboard.readText()))
+    .toContain("http://127.0.0.1:4173/");
+
+  const copiedUrl = new URL(
+    await page.evaluate(() => navigator.clipboard.readText())
+  );
+  expect(copiedUrl.searchParams.get("place")).toBe(placeBeforeShare);
+  expect(copiedUrl.searchParams.has("lon")).toBe(true);
+  expect(copiedUrl.searchParams.has("lat")).toBe(true);
+  expect(copiedUrl.searchParams.has("height")).toBe(true);
+});
+
+test("keeps the workspace within desktop and mobile viewports", async ({
+  page
+}) => {
+  await page.goto("/");
+
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth
+      )
+    )
+    .toBe(true);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <=
+          document.documentElement.clientWidth
+      )
+    )
+    .toBe(true);
+  await expect(
+    page.getByRole("heading", { name: "World Populated Places" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "World places" })
+  ).toBeVisible();
 });
