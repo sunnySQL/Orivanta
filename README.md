@@ -15,8 +15,8 @@ Phase 0 is complete and Orivanta is now in its Phase 1 product-foundation
 stage. Globe.gl is the selected foundation engine and runs inside a
 polished spatial-intelligence workspace with a versioned Natural Earth layer,
 accessible place directory, category filters, keyboard controls, live camera
-readouts, configurable overlays, rich place details, random exploration, and
-shareable URL state.
+readouts, configurable overlays, collapsible workspace panels, a full-globe
+focus mode, rich place details, random exploration, and shareable URL state.
 
 ## Run locally
 

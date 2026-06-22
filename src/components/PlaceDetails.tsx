@@ -11,7 +11,9 @@ interface PlaceDetailsProps {
   manifest: LayerManifest;
   placeCount: number;
   capitalCount: number;
+  collapsed: boolean;
   onClose: () => void;
+  onCollapse: () => void;
   onExploreRandom: () => void;
   onOpenHelp: () => void;
   onShare: () => void;
@@ -22,14 +24,26 @@ export function PlaceDetails({
   manifest,
   placeCount,
   capitalCount,
+  collapsed,
   onClose,
+  onCollapse,
   onExploreRandom,
   onOpenHelp,
   onShare
 }: PlaceDetailsProps) {
   if (!place) {
     return (
-      <aside className="details-panel details-placeholder">
+      <aside className="details-panel details-placeholder" hidden={collapsed}>
+        <button
+          type="button"
+          className="panel-collapse-button details-collapse-button"
+          onClick={onCollapse}
+          aria-label="Collapse place details"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m10 6 6 6-6 6" />
+          </svg>
+        </button>
         <div className="placeholder-orbit" aria-hidden="true">
           <span />
           <span />
@@ -78,7 +92,21 @@ export function PlaceDetails({
   const sourceUrl = safeExternalUrl(manifest.source.url);
 
   return (
-    <aside className="details-panel" aria-labelledby="selected-place-title">
+    <aside
+      className="details-panel"
+      aria-labelledby="selected-place-title"
+      hidden={collapsed}
+    >
+      <button
+        type="button"
+        className="panel-collapse-button details-collapse-button"
+        onClick={onCollapse}
+        aria-label="Collapse place details"
+      >
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path d="m10 6 6 6-6 6" />
+        </svg>
+      </button>
       <button
         type="button"
         className="close-button"

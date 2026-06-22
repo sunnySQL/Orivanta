@@ -9,10 +9,12 @@ interface PlaceListProps {
   query: string;
   filter: PlaceFilter;
   selectedId: string | null;
+  collapsed: boolean;
   searchInputRef: Ref<HTMLInputElement>;
   onQueryChange: (query: string) => void;
   onFilterChange: (filter: PlaceFilter) => void;
   onSelect: (place: PlaceFeature) => void;
+  onCollapse: () => void;
 }
 
 export function PlaceList({
@@ -20,10 +22,12 @@ export function PlaceList({
   query,
   filter,
   selectedId,
+  collapsed,
   searchInputRef,
   onQueryChange,
   onFilterChange,
-  onSelect
+  onSelect,
+  onCollapse
 }: PlaceListProps) {
   const filteredPlaces = useMemo(
     () =>
@@ -47,18 +51,34 @@ export function PlaceList({
   };
 
   return (
-    <section className="place-browser" aria-labelledby="place-browser-title">
+    <section
+      className="place-browser"
+      aria-labelledby="place-browser-title"
+      hidden={collapsed}
+    >
       <div className="section-heading">
         <div>
           <p className="eyebrow">Global directory</p>
           <h2 id="place-browser-title">World places</h2>
         </div>
-        <span
-          className="count-badge"
-          aria-label={`${filteredPlaces.length} results`}
-        >
-          {filteredPlaces.length}
-        </span>
+        <div className="section-heading-actions">
+          <span
+            className="count-badge"
+            aria-label={`${filteredPlaces.length} results`}
+          >
+            {filteredPlaces.length}
+          </span>
+          <button
+            type="button"
+            className="panel-collapse-button"
+            onClick={onCollapse}
+            aria-label="Collapse place directory"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m14 6-6 6 6 6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <label className="search-field">

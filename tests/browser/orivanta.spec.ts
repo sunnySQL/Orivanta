@@ -221,3 +221,60 @@ test("keeps the workspace within desktop and mobile viewports", async ({
     page.getByRole("heading", { name: "World places" })
   ).toBeVisible();
 });
+
+test("collapses panels and expands the globe workspace", async ({ page }) => {
+  await page.goto("/");
+
+  const search = page.getByRole("searchbox", { name: "Search places" });
+  await expect(search).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Collapse place directory" })
+    .click();
+  await expect(search).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open place directory" })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Open place directory" }).click();
+  await expect(search).toBeVisible();
+
+  await search.fill("Chicago");
+  await page.getByRole("button", { name: /^Chicago/ }).click();
+  await expect(
+    page.getByRole("heading", { name: "Chicago", exact: true })
+  ).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Collapse place details" })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Chicago", exact: true })
+  ).not.toBeVisible();
+  await page.getByRole("button", { name: "Open place details" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Chicago", exact: true })
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Focus globe view" }).click();
+  await expect(search).not.toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Chicago", exact: true })
+  ).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Restore workspace panels" })
+  ).toHaveAttribute("aria-pressed", "true");
+
+  const globeWidth = await page.locator(".globe-stage").evaluate(
+    (element) => element.getBoundingClientRect().width
+  );
+  expect(globeWidth).toBeGreaterThan(1200);
+
+  await page
+    .getByRole("button", { name: "Restore workspace panels" })
+    .click();
+  await expect(search).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Chicago", exact: true })
+  ).toBeVisible();
+});

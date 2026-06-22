@@ -33,6 +33,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html,
 body,
 #root {
@@ -325,6 +329,12 @@ p {
   background: var(--danger);
 }
 
+.focus-globe-button.is-active {
+  border-color: rgba(115, 229, 209, 0.42);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .shortcut-panel {
   position: absolute;
   z-index: 40;
@@ -438,6 +448,18 @@ kbd {
   grid-template-columns: minmax(17.5rem, 19.5rem) minmax(31rem, 1fr) minmax(19rem, 22rem);
 }
 
+.workspace.is-directory-collapsed {
+  grid-template-columns: 0 minmax(31rem, 1fr) minmax(19rem, 22rem);
+}
+
+.workspace.is-details-collapsed {
+  grid-template-columns: minmax(17.5rem, 19.5rem) minmax(31rem, 1fr) 0;
+}
+
+.workspace.is-globe-focused {
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+}
+
 .place-browser,
 .details-panel {
   position: relative;
@@ -447,6 +469,7 @@ kbd {
 }
 
 .place-browser {
+  grid-column: 1;
   display: grid;
   grid-template-rows: auto auto auto auto minmax(0, 1fr);
   padding: 1.25rem 0.85rem 0;
@@ -459,6 +482,40 @@ kbd {
   justify-content: space-between;
   gap: 1rem;
   padding: 0 0.35rem 1rem;
+}
+
+.section-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.panel-collapse-button {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.58rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.018);
+  cursor: pointer;
+}
+
+.panel-collapse-button:hover {
+  border-color: rgba(115, 229, 209, 0.28);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.panel-collapse-button svg {
+  width: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 
 .eyebrow {
@@ -759,6 +816,7 @@ kbd {
 }
 
 .globe-stage {
+  grid-column: 2;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -929,6 +987,55 @@ kbd {
   top: 7.25rem;
   right: 1.35rem;
   color: var(--text);
+}
+
+.collapsed-panel-launchers {
+  display: contents;
+}
+
+.panel-launcher {
+  position: absolute;
+  z-index: 7;
+  top: 50%;
+  min-height: 2.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--line-strong);
+  color: var(--muted-bright);
+  background: rgba(8, 13, 21, 0.88);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+  font-size: 0.62rem;
+  font-weight: 720;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.panel-launcher:hover {
+  border-color: rgba(115, 229, 209, 0.38);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+
+.panel-launcher-left {
+  left: 0.75rem;
+  border-radius: 0.72rem;
+}
+
+.panel-launcher-right {
+  right: 0.75rem;
+  border-radius: 0.72rem;
+}
+
+.panel-launcher svg {
+  width: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
 }
 
 .fixture-summary summary {
@@ -1218,6 +1325,7 @@ kbd {
 }
 
 .details-panel {
+  grid-column: 3;
   padding: 1.4rem;
   border-left: 1px solid var(--line);
   overflow-y: auto;
@@ -1277,7 +1385,7 @@ kbd {
 
 .close-button {
   position: absolute;
-  right: 1rem;
+  right: 3.55rem;
   top: 1rem;
   width: 2.15rem;
   height: 2.15rem;
@@ -1288,6 +1396,13 @@ kbd {
   color: var(--muted);
   background: transparent;
   cursor: pointer;
+}
+
+.details-collapse-button {
+  position: absolute;
+  z-index: 2;
+  right: 1rem;
+  top: 1rem;
 }
 
 .close-button:hover {
@@ -1469,6 +1584,10 @@ kbd {
   overflow: hidden;
 }
 
+.details-placeholder .details-collapse-button {
+  display: grid;
+}
+
 .details-placeholder::before {
   content: "";
   position: absolute;
@@ -1646,6 +1765,11 @@ kbd {
     grid-template-columns: minmax(17rem, 19rem) minmax(27rem, 1fr);
   }
 
+  .workspace.is-directory-collapsed,
+  .workspace.is-globe-focused {
+    grid-template-columns: 0 minmax(0, 1fr);
+  }
+
   .details-panel {
     position: absolute;
     z-index: 15;
@@ -1746,6 +1870,10 @@ kbd {
     flex-direction: column;
   }
 
+  .workspace.is-globe-focused .globe-stage {
+    min-height: calc(100dvh - 4.1rem);
+  }
+
   .globe-stage {
     order: 1;
     min-height: 34rem;
@@ -1815,6 +1943,20 @@ kbd {
     border-radius: 1rem 1rem 0 0;
     background: rgba(10, 15, 23, 0.98);
     box-shadow: 0 -25px 80px rgba(0, 0, 0, 0.62);
+  }
+
+  .panel-launcher {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+
+  .panel-launcher-left {
+    left: 1rem;
+  }
+
+  .panel-launcher-right {
+    right: 1rem;
   }
 
   .details-panel::after {

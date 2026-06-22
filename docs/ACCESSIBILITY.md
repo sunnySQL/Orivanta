@@ -102,8 +102,9 @@ Each release should include:
 
 The Phase 1 foundation automates the initial and selected-place axe scans plus
 the search, filtering, selection, sharing, layer controls, responsive layouts,
-and keyboard-globe journeys in Chromium. These checks are a regression
-baseline, not a substitute for the manual testing listed above.
+collapsible panel and full-globe states, and keyboard-globe journeys in
+Chromium. These checks are a regression baseline, not a substitute for the
+manual testing listed above.
 
 ## 9. Definition of done
 
