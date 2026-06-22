@@ -77,5 +77,5 @@ The globe-engine comparison is complete and the decision is documented in
 
 ## Next action
 
-Add browser smoke tests and automated accessibility checks around the selected
-single-engine foundation.
+Configure the first immutable static preview deployment, then repeat runtime
+measurements in current desktop and mobile browsers.

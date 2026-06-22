@@ -14,6 +14,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:browser": "npm run build && playwright test",
+    "test:browser:run": "playwright test",
+    "test:browser:install": "playwright install chromium",
     "data:build": "node tools/data/build-populated-places.mjs && node tools/data/build-catalog.mjs && node tools/data/validate-datasets.mjs",
     "data:check": "node tools/data/validate-datasets.mjs",
     "check": "node tools/data/build-populated-places.mjs && node tools/data/build-catalog.mjs && node tools/data/validate-datasets.mjs && tsc --noEmit && vitest run && vite build"
@@ -26,6 +29,8 @@
     "three-globe": "2.45.2"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.3",
+    "@playwright/test": "1.61.0",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@types/three": "0.184.1",

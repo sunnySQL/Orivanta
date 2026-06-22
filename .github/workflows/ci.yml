@@ -35,8 +35,14 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install browser test runtime
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: Validate, test, and build
         run: npm run check
+
+      - name: Run browser and accessibility tests
+        run: npm run test:browser:run
 
       - name: Audit dependency advisories
         run: pnpm audit --audit-level low

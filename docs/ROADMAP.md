@@ -130,7 +130,7 @@ not a prerequisite for discovering that value.
 
 ## Immediate backlog
 
-1. Add browser smoke tests for the critical keyboard and selection journey.
-2. Add automated accessibility checks.
-3. Configure the first static preview deployment.
-4. Repeat runtime measurements in normal Chrome, Firefox, Safari, and Edge.
+1. Configure the first static preview deployment.
+2. Repeat runtime measurements in normal Chrome, Firefox, Safari, and Edge.
+3. Add formatting, linting, and automated secret scanning.
+4. Define the first complete-experience audience and dataset goals.

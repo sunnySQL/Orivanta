@@ -100,6 +100,11 @@ Each release should include:
   releases; and
 - periodic testing with people who use assistive technology.
 
+The Phase 1 foundation automates the initial and selected-place axe scans plus
+the search, selection, sharing, and keyboard-globe journeys in Chromium. These
+checks are a regression baseline, not a substitute for the manual testing
+listed above.
+
 ## 9. Definition of done
 
 A feature is not complete when:

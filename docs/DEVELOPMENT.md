@@ -1,30 +1,39 @@
 # Development Guide
 
-This guide describes the intended workflow. Commands will be finalized when
-the application is scaffolded in Phase 1.
+This guide describes the current local and continuous-integration workflow.
 
 ## 1. Prerequisites
 
 - Git
-- a current maintained Node.js release
+- Node.js 22.13 or newer
 - pnpm managed through Corepack or installed from its official distribution
 - current versions of Chrome, Firefox, and Safari for local testing
 
 Do not install project tooling globally unless it is specifically documented.
 
-## 2. Expected commands
+## 2. Commands
 
-The scaffold should expose a small, stable command surface:
+Install the locked dependencies:
 
 ```sh
 pnpm install --frozen-lockfile
+```
+
+Install the pinned Chromium runtime once before running browser tests:
+
+```sh
+npm run test:browser:install
+```
+
+The project exposes a small, stable command surface:
+
+```sh
 pnpm dev
 pnpm build
 pnpm test
-pnpm test:e2e
-pnpm lint
 pnpm typecheck
 pnpm check
+npm run test:browser
 ```
 
 If the `pnpm` command is unavailable but dependencies are already installed,
@@ -34,13 +43,19 @@ the same project scripts can be started through npm:
 npm run dev
 npm run build
 npm run check
+npm run test:browser
 ```
 
 Do not run `npm install`; pnpm and `pnpm-lock.yaml` remain the dependency
 installation source of truth.
 
-`pnpm check` should run the required local quality gates without modifying
-files.
+`npm run check` validates and rebuilds data, type-checks, runs unit tests, and
+creates the production build. `npm run test:browser` creates a fresh production
+build, starts a temporary local preview, and runs the Playwright browser and
+axe accessibility suites.
+
+Continuous integration runs the locked install, the main check, browser and
+accessibility tests, and a dependency advisory audit.
 
 ## 3. Working agreements
 
@@ -125,7 +140,6 @@ review conditions.
 
 ## 9. Before the scaffold exists
 
-During Phase 0, prototypes may live under a temporary `spikes/` directory.
-They should not quietly become production architecture. Keep findings,
-measurements, and decisions; delete or archive disposable code after the
-durable application is scaffolded.
+Phase 0 prototypes are preserved as reports under `docs/prototypes/`. The
+durable application now lives behind the project-owned globe adapter; prototype
+code must not be copied back into the production boundary without review.
