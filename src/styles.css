@@ -329,12 +329,6 @@ p {
   background: var(--danger);
 }
 
-.focus-globe-button.is-active {
-  border-color: rgba(115, 229, 209, 0.42);
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-
 .shortcut-panel {
   position: absolute;
   z-index: 40;

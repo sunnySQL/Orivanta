@@ -80,15 +80,14 @@ export default function App() {
   const [showRoutes, setShowRoutes] = useState(true);
   const [showRegions, setShowRegions] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
-  const [directoryOpen, setDirectoryOpen] = useState(true);
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [shareState, setShareState] = useState<
     "idle" | "copied" | "failed"
   >("idle");
   const controllerRef = useRef<GlobeController>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const shareResetRef = useRef<number | null>(null);
-  const previousPanelsRef = useRef({ directoryOpen: true, detailsOpen: true });
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -220,18 +219,11 @@ export default function App() {
 
   const globeFocused = !directoryOpen && !detailsOpen;
 
-  const toggleGlobeFocus = useCallback(() => {
-    if (!directoryOpen && !detailsOpen) {
-      setDirectoryOpen(previousPanelsRef.current.directoryOpen);
-      setDetailsOpen(previousPanelsRef.current.detailsOpen);
-      return;
-    }
-
-    previousPanelsRef.current = { directoryOpen, detailsOpen };
+  const focusGlobe = useCallback(() => {
     setDirectoryOpen(false);
     setDetailsOpen(false);
     window.requestAnimationFrame(() => controllerRef.current?.focus());
-  }, [detailsOpen, directoryOpen]);
+  }, []);
 
   const shareCurrentView = useCallback(async () => {
     try {
@@ -394,26 +386,19 @@ export default function App() {
             </svg>
             <span>Explore</span>
           </button>
-          <button
-            type="button"
-            className={`topbar-button focus-globe-button ${
-              globeFocused ? "is-active" : ""
-            }`}
-            onClick={toggleGlobeFocus}
-            aria-pressed={globeFocused}
-            aria-label={
-              globeFocused ? "Restore workspace panels" : "Focus globe view"
-            }
-          >
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              {globeFocused ? (
-                <path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5M4 4l6 6M20 4l-6 6M4 20l6-6M20 20l-6-6" />
-              ) : (
+          {!globeFocused ? (
+            <button
+              type="button"
+              className="topbar-button focus-globe-button"
+              onClick={focusGlobe}
+              aria-label="Focus globe view"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24">
                 <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
-              )}
-            </svg>
-            <span>{globeFocused ? "Restore" : "Focus globe"}</span>
-          </button>
+              </svg>
+              <span>Globe only</span>
+            </button>
+          ) : null}
           <button
             type="button"
             className={`share-button ${
@@ -612,12 +597,12 @@ export default function App() {
                 type="button"
                 className="panel-launcher panel-launcher-left"
                 onClick={() => setDirectoryOpen(true)}
-                aria-label="Open place directory"
+                aria-label="Browse places"
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                   <path d="M4 5h16M4 12h16M4 19h10" />
                 </svg>
-                <span>Places</span>
+                <span>Browse places</span>
               </button>
             ) : null}
             {!detailsOpen && selectedPlace ? (

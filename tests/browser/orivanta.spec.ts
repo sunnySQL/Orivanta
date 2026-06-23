@@ -1,4 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function openPlaceDirectory(page: Page) {
+  await page.getByRole("button", { name: "Browse places" }).click();
+  await expect(
+    page.getByRole("searchbox", { name: "Search places" })
+  ).toBeVisible();
+}
 
 test("loads the accessible application shell", async ({ page }) => {
   await page.goto("/");
@@ -7,21 +14,22 @@ test("loads the accessible application shell", async ({ page }) => {
     page.getByRole("heading", { name: "World Populated Places" })
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "World places" })
+    page.getByRole("button", { name: "Browse places" })
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Focus globe view" })
+  ).not.toBeVisible();
   await expect(
     page.getByRole("searchbox", { name: "Search places" })
-  ).toBeVisible();
+  ).not.toBeVisible();
+
+  await openPlaceDirectory(page);
   await expect(page.getByText("243 places available.")).toBeVisible();
-  await expect(
-    page.getByRole("heading", {
-      name: "Choose a point on the globe or from the list."
-    })
-  ).toBeVisible();
 });
 
 test("searches, selects, shares, and closes a place", async ({ page }) => {
   await page.goto("/");
+  await openPlaceDirectory(page);
 
   const search = page.getByRole("searchbox", { name: "Search places" });
   await search.fill("Chicago");
@@ -107,13 +115,14 @@ test("removes the retired engine query parameter", async ({ page }) => {
   await page.goto("/?engine=cesium");
 
   await expect(
-    page.getByRole("heading", { name: "World places" })
+    page.getByRole("heading", { name: "World Populated Places" })
   ).toBeVisible();
   await expect(page).not.toHaveURL(/[?&]engine=/);
 });
 
 test("filters places and can reset an empty result", async ({ page }) => {
   await page.goto("/");
+  await openPlaceDirectory(page);
 
   const capitals = page.getByRole("button", { name: "Capitals" });
   const allPlaces = page.getByRole("button", { name: "All", exact: true });
@@ -218,7 +227,7 @@ test("keeps the workspace within desktop and mobile viewports", async ({
     page.getByRole("heading", { name: "World Populated Places" })
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "World places" })
+    page.getByRole("button", { name: "Browse places" })
   ).toBeVisible();
 });
 
@@ -226,18 +235,24 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
   await page.goto("/");
 
   const search = page.getByRole("searchbox", { name: "Search places" });
+  await expect(search).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Focus globe view" })
+  ).not.toBeVisible();
+
+  const initialGlobeWidth = await page.locator(".globe-stage").evaluate(
+    (element) => element.getBoundingClientRect().width
+  );
+  expect(initialGlobeWidth).toBeGreaterThan(1200);
+
+  await openPlaceDirectory(page);
   await expect(search).toBeVisible();
 
   await page
     .getByRole("button", { name: "Collapse place directory" })
     .click();
   await expect(search).not.toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Open place directory" })
-  ).toBeVisible();
-
-  await page.getByRole("button", { name: "Open place directory" }).click();
-  await expect(search).toBeVisible();
+  await openPlaceDirectory(page);
 
   await search.fill("Chicago");
   await page.getByRole("button", { name: /^Chicago/ }).click();
@@ -262,17 +277,19 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
     page.getByRole("heading", { name: "Chicago", exact: true })
   ).not.toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Restore workspace panels" })
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("button", { name: "Browse places" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Open place details" })
+  ).toBeVisible();
 
   const globeWidth = await page.locator(".globe-stage").evaluate(
     (element) => element.getBoundingClientRect().width
   );
   expect(globeWidth).toBeGreaterThan(1200);
 
-  await page
-    .getByRole("button", { name: "Restore workspace panels" })
-    .click();
+  await openPlaceDirectory(page);
+  await page.getByRole("button", { name: "Open place details" }).click();
   await expect(search).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })

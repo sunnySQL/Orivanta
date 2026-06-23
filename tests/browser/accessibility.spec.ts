@@ -29,6 +29,13 @@ async function waitForStableInterface(page: Page) {
   );
 }
 
+async function openPlaceDirectory(page: Page) {
+  await page.getByRole("button", { name: "Browse places" }).click();
+  await expect(
+    page.getByRole("searchbox", { name: "Search places" })
+  ).toBeVisible();
+}
+
 test("has no automated WCAG violations in its initial state", async ({
   page
 }) => {
@@ -42,6 +49,7 @@ test("has no automated WCAG violations with a selected place", async ({
 }) => {
   await page.goto("/");
   await waitForStableInterface(page);
+  await openPlaceDirectory(page);
 
   await page
     .getByRole("searchbox", { name: "Search places" })

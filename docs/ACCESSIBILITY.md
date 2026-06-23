@@ -106,6 +106,10 @@ collapsible panel and full-globe states, and keyboard-globe journeys in
 Chromium. These checks are a regression baseline, not a substitute for the
 manual testing listed above.
 
+The default view keeps both supplemental panels collapsed so the globe remains
+the primary visual focus. The place directory is exposed through a persistent,
+keyboard-operable “Browse places” control.
+
 ## 9. Definition of done
 
 A feature is not complete when:
