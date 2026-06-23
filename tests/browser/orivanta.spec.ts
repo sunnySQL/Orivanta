@@ -22,6 +22,19 @@ test("loads the accessible application shell", async ({ page }) => {
   await expect(
     page.getByRole("searchbox", { name: "Search places" })
   ).not.toBeVisible();
+  await expect(page.locator(".globe-statusbar")).toHaveCSS(
+    "background-color",
+    "rgba(0, 0, 0, 0)"
+  );
+  await expect(page.locator(".globe-statusbar")).toHaveCSS(
+    "border-top-width",
+    "0px"
+  );
+  await expect(page.locator(".globe-statusbar")).toHaveCSS(
+    "backdrop-filter",
+    "none"
+  );
+  await expect(page.locator(".globe-statusbar")).toHaveCSS("padding", "0px");
 
   await openPlaceDirectory(page);
   await expect(page.getByText("243 places available.")).toBeVisible();

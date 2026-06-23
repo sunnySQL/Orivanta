@@ -1233,55 +1233,41 @@ kbd {
 .globe-statusbar {
   position: absolute;
   z-index: 5;
-  left: 1.25rem;
-  right: 1.25rem;
-  bottom: 1rem;
-  min-height: 2.9rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.2rem;
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.45rem 0.65rem;
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  background: rgba(6, 10, 16, 0.72);
-  backdrop-filter: blur(16px);
+  gap: 1.5rem;
+  pointer-events: none;
 }
 
 .camera-readout {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 1.35rem;
 }
 
 .camera-readout > span {
-  min-width: 5rem;
   display: grid;
-  padding: 0 0.75rem;
-  border-right: 1px solid var(--line);
-}
-
-.camera-readout > span:first-child {
-  padding-left: 0.2rem;
-}
-
-.camera-readout > span:last-child {
-  border-right: 0;
 }
 
 .camera-readout small {
-  color: #6f7d90;
+  color: rgba(185, 197, 210, 0.58);
   font-size: 0.49rem;
   font-weight: 750;
   letter-spacing: 0.1em;
+  text-shadow: 0 1px 4px #000;
   text-transform: uppercase;
 }
 
 .camera-readout strong {
   margin-top: 0.18rem;
-  color: var(--muted-bright);
+  color: rgba(244, 248, 252, 0.88);
   font-size: 0.62rem;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 5px #000;
 }
 
 .globe-hint {
@@ -1910,20 +1896,17 @@ kbd {
   }
 
   .globe-statusbar {
-    left: 1rem;
-    right: 1rem;
-    bottom: 0.85rem;
+    left: 1.15rem;
+    right: 1.15rem;
+    bottom: 1rem;
   }
 
   .camera-readout {
-    width: 100%;
-    justify-content: space-between;
+    gap: 1rem;
   }
 
   .camera-readout > span {
     min-width: 0;
-    flex: 1 1 0;
-    padding: 0 0.55rem;
   }
 
   .details-panel {
