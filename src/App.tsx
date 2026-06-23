@@ -7,17 +7,22 @@ import {
   useRef,
   useState
 } from "react";
-import { FoundationFixtures } from "./components/FoundationFixtures";
+import { BoundaryLayers } from "./components/BoundaryLayers";
 import { GlobeControls } from "./components/GlobeControls";
 import { PlaceDetails } from "./components/PlaceDetails";
 import {
   PlaceList,
   type PlaceFilter
 } from "./components/PlaceList";
-import { loadDefaultLayer } from "./data/loadLayer";
+import { loadBoundaryLayers, loadDefaultLayer } from "./data/loadLayer";
+import { isStateDetailVisible } from "./globe/boundaries";
 import type { GlobeController } from "./globe/types";
 import { useReducedMotion } from "./hooks/useReducedMotion";
-import type { LoadedLayer, PlaceFeature } from "./types/data";
+import type {
+  LoadedBoundaryLayers,
+  LoadedLayer,
+  PlaceFeature
+} from "./types/data";
 import { markPerformance } from "./utils/performance";
 import {
   readUrlState,
@@ -28,6 +33,11 @@ import {
 type LoadState =
   | { status: "loading" }
   | { status: "ready"; layer: LoadedLayer }
+  | { status: "error"; message: string };
+
+type BoundaryLoadState =
+  | { status: "loading" }
+  | { status: "ready"; layers: LoadedBoundaryLayers }
   | { status: "error"; message: string };
 
 const initialUrlState = readUrlState(window.location.search);
@@ -66,6 +76,8 @@ function formatCameraCoordinate(
 
 export default function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
+  const [boundaryLoadState, setBoundaryLoadState] =
+    useState<BoundaryLoadState>({ status: "loading" });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<PlaceFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(
@@ -77,8 +89,8 @@ export default function App() {
   const [camera, setCamera] = useState<CameraState | null>(
     initialUrlState.camera
   );
-  const [showRoutes, setShowRoutes] = useState(true);
-  const [showRegions, setShowRegions] = useState(true);
+  const [showCountries, setShowCountries] = useState(true);
+  const [showUsStates, setShowUsStates] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [directoryOpen, setDirectoryOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -100,6 +112,26 @@ export default function App() {
         `${url.pathname}${url.search}${url.hash}`
       );
     }
+  }, []);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    loadBoundaryLayers(abortController.signal)
+      .then((layers) => {
+        setBoundaryLoadState({ status: "ready", layers });
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setBoundaryLoadState({
+          status: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Boundary layers could not be loaded."
+        });
+      });
+
+    return () => abortController.abort();
   }, []);
 
   useEffect(() => {
@@ -134,6 +166,18 @@ export default function App() {
   }, [loadState.status]);
 
   const places = loadState.status === "ready" ? loadState.layer.places : [];
+  const countries =
+    boundaryLoadState.status === "ready"
+      ? boundaryLoadState.layers.countries.boundaries
+      : [];
+  const usStates =
+    boundaryLoadState.status === "ready"
+      ? boundaryLoadState.layers.usStates.boundaries
+      : [];
+  const stateDetailVisible = isStateDetailVisible(
+    camera?.height ?? null,
+    showUsStates
+  );
   const capitalCount = useMemo(
     () =>
       places.filter(
@@ -529,11 +573,14 @@ export default function App() {
                 <GlobeView
                   ref={registerController}
                   places={places}
+                  countries={countries}
+                  usStates={usStates}
                   selectedId={selectedId}
                   initialCamera={initialUrlState.camera}
                   reducedMotion={reducedMotion}
-                  showRoutes={showRoutes}
-                  showRegions={showRegions}
+                  showCountries={showCountries}
+                  showUsStates={showUsStates}
+                  showStateDetail={stateDetailVisible}
                   onSelect={selectPlaceAndReveal}
                   onCameraChange={updateCamera}
                   onReady={handleGlobeReady}
@@ -544,11 +591,16 @@ export default function App() {
                 controller={controller}
                 onFocusGlobe={() => controllerRef.current?.focus()}
               />
-              <FoundationFixtures
-                showRoutes={showRoutes}
-                showRegions={showRegions}
-                onShowRoutesChange={setShowRoutes}
-                onShowRegionsChange={setShowRegions}
+              <BoundaryLayers
+                status={boundaryLoadState.status}
+                placeCount={places.length}
+                countryCount={countries.length}
+                usStateCount={usStates.length}
+                showCountries={showCountries}
+                showUsStates={showUsStates}
+                stateDetailVisible={stateDetailVisible}
+                onShowCountriesChange={setShowCountries}
+                onShowUsStatesChange={setShowUsStates}
               />
               <div className="globe-statusbar">
                 <div

@@ -1,0 +1,19 @@
+{
+  "layerId": "natural-earth-us-states",
+  "layerVersion": "5.1.2-project.1",
+  "sourceVersion": "5.1.2",
+  "sourceSha256": "69a0e06e640b2d505858ae1cb63034e4677f3000b35a98e16312932b98c426b9",
+  "outputSha256": "d2418260d0fa4441e991092d0065c4264b67116bfa3f982a78433dc3cb0b3a15",
+  "featureCount": 51,
+  "bounds": [
+    -178.194518,
+    18.963909,
+    -66.987022,
+    71.407687
+  ],
+  "geometryTypes": [
+    "MultiPolygon",
+    "Polygon"
+  ],
+  "missingCodes": 0
+}

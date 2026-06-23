@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orivanta.invalid/schemas/boundary-properties.schema.json",
+  "title": "Orivanta Boundary Properties",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "nameAscii",
+    "code",
+    "parentName",
+    "parentCode",
+    "level",
+    "region",
+    "detail",
+    "description",
+    "sourceId"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nameAscii": {
+      "type": "string",
+      "minLength": 1
+    },
+    "code": {
+      "type": ["string", "null"]
+    },
+    "parentName": {
+      "type": ["string", "null"]
+    },
+    "parentCode": {
+      "type": ["string", "null"]
+    },
+    "level": {
+      "enum": ["country", "us-state"]
+    },
+    "region": {
+      "type": ["string", "null"]
+    },
+    "detail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximumCameraHeight"],
+      "properties": {
+        "maximumCameraHeight": {
+          "type": ["number", "null"],
+          "minimum": 0
+        }
+      }
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceId": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

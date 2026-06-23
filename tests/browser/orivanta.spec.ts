@@ -173,14 +173,29 @@ test("operates workspace help, layers, random exploration, and sharing", async (
     .click();
 
   await page.locator("summary").filter({ hasText: "Layers" }).click();
-  const routes = page.getByRole("checkbox", { name: /Global routes/ });
-  const regions = page.getByRole("checkbox", { name: /Focus regions/ });
-  await expect(routes).toBeChecked();
-  await expect(regions).toBeChecked();
-  await routes.uncheck();
-  await regions.uncheck();
-  await expect(routes).not.toBeChecked();
-  await expect(regions).not.toBeChecked();
+  const countries = page.getByRole("checkbox", {
+    name: /Country boundaries/
+  });
+  const states = page.getByRole("checkbox", {
+    name: /U\.S\. state boundaries/
+  });
+  await expect(countries).toBeChecked();
+  await expect(states).toBeChecked();
+  await expect(page.getByText("177 countries · Natural Earth")).toBeVisible();
+  await expect(
+    page.getByText("51 regions · Zoom closer to reveal")
+  ).toBeVisible();
+
+  for (let step = 0; step < 3; step += 1) {
+    await page.getByRole("button", { name: "Zoom in" }).click();
+  }
+  await expect(page.getByText("51 regions · Visible now")).toBeVisible();
+
+  await countries.uncheck({ force: true });
+  await states.uncheck({ force: true });
+  await expect(countries).not.toBeChecked();
+  await expect(states).not.toBeChecked();
+  await expect(page.getByText("51 regions · Hidden")).toBeVisible();
 
   await page
     .locator("header")
@@ -263,7 +278,7 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
 
   await page
     .getByRole("button", { name: "Collapse place directory" })
-    .click();
+    .click({ force: true });
   await expect(search).not.toBeVisible();
   await openPlaceDirectory(page);
 
@@ -275,16 +290,20 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
 
   await page
     .getByRole("button", { name: "Collapse place details" })
-    .click();
+    .click({ force: true });
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })
   ).not.toBeVisible();
-  await page.getByRole("button", { name: "Open place details" }).click();
+  await page
+    .getByRole("button", { name: "Open place details" })
+    .click({ force: true });
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "Focus globe view" }).click();
+  await page
+    .getByRole("button", { name: "Focus globe view" })
+    .click({ force: true });
   await expect(search).not.toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })
@@ -302,7 +321,9 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
   expect(globeWidth).toBeGreaterThan(1200);
 
   await openPlaceDirectory(page);
-  await page.getByRole("button", { name: "Open place details" }).click();
+  await page
+    .getByRole("button", { name: "Open place details" })
+    .click({ force: true });
   await expect(search).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })

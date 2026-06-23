@@ -1,0 +1,19 @@
+{
+  "layerId": "natural-earth-countries",
+  "layerVersion": "5.1.2-project.1",
+  "sourceVersion": "5.1.2",
+  "sourceSha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
+  "outputSha256": "173b3915ceffbb290891f8952ec2bc8e9d8a20f367f5cee3210948d8a04bd95d",
+  "featureCount": 177,
+  "bounds": [
+    -180,
+    -90,
+    180,
+    83.64513
+  ],
+  "geometryTypes": [
+    "MultiPolygon",
+    "Polygon"
+  ],
+  "missingCodes": 0
+}

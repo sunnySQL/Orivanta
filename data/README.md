@@ -14,23 +14,20 @@ data/
   reports/       deterministic build summaries
 ```
 
-## Seed dataset
+## Foundation datasets
 
-The first seed layer is Natural Earth's 1:110m Populated Places (Simple)
-dataset, release 5.1.2.
+The foundation uses three pinned Natural Earth 5.1.2 layers:
 
-It contains 243 globally distributed city and town points, including national
-and selected regional capitals. It is useful for testing:
+- 243 globally distributed populated-place points at 1:110m;
+- 177 country polygons at 1:110m; and
+- 50 U.S. states plus Washington, D.C. at 1:50m.
 
-- globe labels and point rendering;
-- search and filtering;
-- camera flights and selection;
-- synchronized list and detail views;
-- clustering and minimum-zoom behavior; and
-- global keyboard navigation.
+Together they exercise points, polygon rendering, progressive detail, search,
+camera movement, synchronized list/detail views, and keyboard navigation.
 
-This is foundation test data, not a decision that the finished product will be
-about cities.
+These are cartographic foundation layers, not authoritative legal or surveying
+data. Higher-detail tiers can be added later without changing the layer
+contract.
 
 ## Build and validation
 
@@ -38,6 +35,7 @@ The scripts use only Node.js built-ins:
 
 ```sh
 node tools/data/build-populated-places.mjs
+node tools/data/build-boundaries.mjs
 node tools/data/build-catalog.mjs
 node tools/data/validate-datasets.mjs
 ```

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "natural-earth-us-states",
+  "version": "5.1.2-project.1",
+  "title": "United States Boundaries",
+  "description": "State and federal-district polygons that appear as the globe moves into regional detail.",
+  "license": {
+    "name": "Public Domain",
+    "url": "https://www.naturalearthdata.com/about/terms-of-use/"
+  },
+  "attribution": "Made with Natural Earth.",
+  "source": {
+    "publisher": "Natural Earth",
+    "dataset": "Admin 1 — States, Provinces",
+    "version": "5.1.2",
+    "scale": "1:50m",
+    "url": "https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-1-states-provinces/",
+    "downloadUrl": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_50m_admin_1_states_provinces.geojson",
+    "retrievedOn": "2026-06-23",
+    "sha256": "69a0e06e640b2d505858ae1cb63034e4677f3000b35a98e16312932b98c426b9"
+  },
+  "data": {
+    "path": "us-states.geojson",
+    "format": "GeoJSON",
+    "geometryTypes": [
+      "MultiPolygon",
+      "Polygon"
+    ],
+    "featureCount": 51,
+    "bounds": [
+      -178.194518,
+      18.963909,
+      -66.987022,
+      71.407687
+    ],
+    "bytes": 285024,
+    "sha256": "d2418260d0fa4441e991092d0065c4264b67116bfa3f982a78433dc3cb0b3a15"
+  },
+  "presentation": {
+    "defaultVisible": true,
+    "minimumZoomProperty": "detail.maximumCameraHeight",
+    "labelProperty": "name"
+  },
+  "accessibility": {
+    "listLabel": "United States state boundaries",
+    "itemLabelTemplate": "{name}, United States",
+    "descriptionProperty": "description"
+  },
+  "limitations": [
+    "This layer includes the 50 U.S. states and Washington, D.C.; it does not include counties or lower administrative levels.",
+    "The 1:50m scale is designed for regional visualization, not legal, surveying, or parcel-level use.",
+    "Coastlines and boundaries are cartographically generalized and become less accurate at close zoom levels.",
+    "Authoritative U.S. boundary workflows should use a pinned U.S. Census Bureau source in a future higher-detail tier."
+  ]
+}

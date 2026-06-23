@@ -2,11 +2,27 @@
   "schemaVersion": 1,
   "layers": [
     {
+      "id": "natural-earth-countries",
+      "version": "5.1.2-project.1",
+      "title": "World Country Boundaries",
+      "description": "Simplified global country polygons for navigation, context, and future country selection.",
+      "manifestPath": "layers/natural-earth-countries/layer.json",
+      "defaultVisible": true
+    },
+    {
       "id": "natural-earth-populated-places",
       "version": "5.1.2-project.1",
       "title": "World Populated Places",
       "description": "A global sample of capitals and selected significant cities for Orivanta foundation testing.",
       "manifestPath": "layers/natural-earth-populated-places/layer.json",
+      "defaultVisible": true
+    },
+    {
+      "id": "natural-earth-us-states",
+      "version": "5.1.2-project.1",
+      "title": "United States Boundaries",
+      "description": "State and federal-district polygons that appear as the globe moves into regional detail.",
+      "manifestPath": "layers/natural-earth-us-states/layer.json",
       "defaultVisible": true
     }
   ]

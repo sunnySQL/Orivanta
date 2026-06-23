@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import type { PlaceFeature } from "../types/data";
+import type { BoundaryFeature, PlaceFeature } from "../types/data";
 import type { CameraState } from "../utils/urlState";
 
 export interface GlobeController {
@@ -13,11 +13,14 @@ export interface GlobeController {
 export interface GlobeViewProps {
   ref?: Ref<GlobeController>;
   places: PlaceFeature[];
+  countries: BoundaryFeature[];
+  usStates: BoundaryFeature[];
   selectedId: string | null;
   initialCamera: CameraState | null;
   reducedMotion: boolean;
-  showRoutes: boolean;
-  showRegions: boolean;
+  showCountries: boolean;
+  showUsStates: boolean;
+  showStateDetail: boolean;
   onSelect: (id: string | null) => void;
   onCameraChange: (camera: CameraState) => void;
   onReady: () => void;

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "natural-earth-countries",
+  "version": "5.1.2-project.1",
+  "title": "World Country Boundaries",
+  "description": "Simplified global country polygons for navigation, context, and future country selection.",
+  "license": {
+    "name": "Public Domain",
+    "url": "https://www.naturalearthdata.com/about/terms-of-use/"
+  },
+  "attribution": "Made with Natural Earth.",
+  "source": {
+    "publisher": "Natural Earth",
+    "dataset": "Admin 0 — Countries",
+    "version": "5.1.2",
+    "scale": "1:110m",
+    "url": "https://www.naturalearthdata.com/downloads/110m-cultural-vectors/110m-admin-0-countries/",
+    "downloadUrl": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_110m_admin_0_countries.geojson",
+    "retrievedOn": "2026-06-23",
+    "sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f"
+  },
+  "data": {
+    "path": "countries.geojson",
+    "format": "GeoJSON",
+    "geometryTypes": [
+      "MultiPolygon",
+      "Polygon"
+    ],
+    "featureCount": 177,
+    "bounds": [
+      -180,
+      -90,
+      180,
+      83.64513
+    ],
+    "bytes": 309733,
+    "sha256": "173b3915ceffbb290891f8952ec2bc8e9d8a20f367f5cee3210948d8a04bd95d"
+  },
+  "presentation": {
+    "defaultVisible": true,
+    "minimumZoomProperty": "detail.maximumCameraHeight",
+    "labelProperty": "name"
+  },
+  "accessibility": {
+    "listLabel": "World country boundaries",
+    "itemLabelTemplate": "{name}",
+    "descriptionProperty": "description"
+  },
+  "limitations": [
+    "Natural Earth displays de facto boundaries and is not a source for legal or diplomatic boundary determinations.",
+    "The 1:110m scale is simplified for global views and must not be used for surveying or local parcel accuracy.",
+    "Small territories and detailed coastlines may be omitted or generalized.",
+    "Names and geopolitical representation reflect the pinned Natural Earth 5.1.2 release."
+  ]
+}

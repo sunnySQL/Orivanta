@@ -44,7 +44,7 @@ export interface LayerManifest {
   data: {
     path: string;
     format: "GeoJSON";
-    geometryTypes: ["Point"];
+    geometryTypes: GeoJsonGeometryType[];
     featureCount: number;
     bounds: [number, number, number, number];
     bytes: number;
@@ -62,6 +62,14 @@ export interface LayerManifest {
   };
   limitations: string[];
 }
+
+export type GeoJsonGeometryType =
+  | "Point"
+  | "MultiPoint"
+  | "LineString"
+  | "MultiLineString"
+  | "Polygon"
+  | "MultiPolygon";
 
 export interface PlaceProperties {
   name: string;
@@ -102,4 +110,55 @@ export interface PlaceFeatureCollection {
 export interface LoadedLayer {
   manifest: LayerManifest;
   places: PlaceFeature[];
+}
+
+export type BoundaryLevel = "country" | "us-state";
+export type LongitudeLatitude = [longitude: number, latitude: number];
+export type LinearRing = LongitudeLatitude[];
+export type PolygonCoordinates = LinearRing[];
+export type MultiPolygonCoordinates = PolygonCoordinates[];
+
+export interface BoundaryProperties {
+  name: string;
+  nameAscii: string;
+  code: string | null;
+  parentName: string | null;
+  parentCode: string | null;
+  level: BoundaryLevel;
+  region: string | null;
+  detail: {
+    maximumCameraHeight: number | null;
+  };
+  description: string;
+  sourceId: number;
+}
+
+export interface BoundaryFeature {
+  type: "Feature";
+  id: string;
+  geometry:
+    | {
+        type: "Polygon";
+        coordinates: PolygonCoordinates;
+      }
+    | {
+        type: "MultiPolygon";
+        coordinates: MultiPolygonCoordinates;
+      };
+  properties: BoundaryProperties;
+}
+
+export interface BoundaryFeatureCollection {
+  type: "FeatureCollection";
+  features: BoundaryFeature[];
+}
+
+export interface LoadedBoundaryLayer {
+  manifest: LayerManifest;
+  boundaries: BoundaryFeature[];
+}
+
+export interface LoadedBoundaryLayers {
+  countries: LoadedBoundaryLayer;
+  usStates: LoadedBoundaryLayer;
 }

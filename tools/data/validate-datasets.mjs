@@ -55,7 +55,7 @@ function validateBounds(bounds, layerId) {
   );
 }
 
-function validatePointFeature(feature, layerId, ids) {
+function validateFeatureIdentity(feature, layerId, ids) {
   assert(feature?.type === "Feature", `${layerId}: invalid GeoJSON feature.`);
   assert(
     typeof feature.id === "string" && feature.id.length > 0,
@@ -63,21 +63,32 @@ function validatePointFeature(feature, layerId, ids) {
   );
   assert(!ids.has(feature.id), `${layerId}: duplicate feature ID ${feature.id}.`);
   ids.add(feature.id);
+}
 
+function validatePosition(position, layerId, featureId) {
+  assert(
+    Array.isArray(position) &&
+      Number.isFinite(position[0]) &&
+      position[0] >= -180 &&
+      position[0] <= 180,
+    `${layerId}: ${featureId} has invalid longitude.`
+  );
+  assert(
+    Number.isFinite(position[1]) &&
+      position[1] >= -90 &&
+      position[1] <= 90,
+    `${layerId}: ${featureId} has invalid latitude.`
+  );
+}
+
+function validatePointFeature(feature, layerId, ids) {
+  validateFeatureIdentity(feature, layerId, ids);
   assert(
     feature.geometry?.type === "Point",
     `${layerId}: ${feature.id} must have Point geometry.`
   );
 
-  const [longitude, latitude] = feature.geometry.coordinates ?? [];
-  assert(
-    Number.isFinite(longitude) && longitude >= -180 && longitude <= 180,
-    `${layerId}: ${feature.id} has invalid longitude.`
-  );
-  assert(
-    Number.isFinite(latitude) && latitude >= -90 && latitude <= 90,
-    `${layerId}: ${feature.id} has invalid latitude.`
-  );
+  validatePosition(feature.geometry.coordinates, layerId, feature.id);
 
   const properties = feature.properties ?? {};
   for (const key of [
@@ -93,6 +104,78 @@ function validatePointFeature(feature, layerId, ids) {
     );
   }
 
+  assert(
+    Number.isInteger(properties.sourceId) && properties.sourceId > 0,
+    `${layerId}: ${feature.id} has an invalid sourceId.`
+  );
+}
+
+function validateRing(ring, layerId, featureId) {
+  assert(
+    Array.isArray(ring) && ring.length >= 4,
+    `${layerId}: ${featureId} has a polygon ring with fewer than four positions.`
+  );
+
+  for (const position of ring) {
+    validatePosition(position, layerId, featureId);
+  }
+
+  const first = ring[0];
+  const last = ring.at(-1);
+  assert(
+    first[0] === last[0] && first[1] === last[1],
+    `${layerId}: ${featureId} has an open polygon ring.`
+  );
+}
+
+function validatePolygon(polygon, layerId, featureId) {
+  assert(
+    Array.isArray(polygon) && polygon.length > 0,
+    `${layerId}: ${featureId} has an empty polygon.`
+  );
+  for (const ring of polygon) {
+    validateRing(ring, layerId, featureId);
+  }
+}
+
+function validateBoundaryFeature(feature, layerId, ids) {
+  validateFeatureIdentity(feature, layerId, ids);
+
+  const geometry = feature.geometry;
+  if (geometry?.type === "Polygon") {
+    validatePolygon(geometry.coordinates, layerId, feature.id);
+  } else if (geometry?.type === "MultiPolygon") {
+    assert(
+      Array.isArray(geometry.coordinates) && geometry.coordinates.length > 0,
+      `${layerId}: ${feature.id} has an empty multipolygon.`
+    );
+    for (const polygon of geometry.coordinates) {
+      validatePolygon(polygon, layerId, feature.id);
+    }
+  } else {
+    throw new Error(
+      `${layerId}: ${feature.id} must have Polygon or MultiPolygon geometry.`
+    );
+  }
+
+  const properties = feature.properties ?? {};
+  for (const key of ["name", "nameAscii", "level", "description"]) {
+    assert(
+      typeof properties[key] === "string" && properties[key].length > 0,
+      `${layerId}: ${feature.id} is missing properties.${key}.`
+    );
+  }
+  assert(
+    properties.level === "country" || properties.level === "us-state",
+    `${layerId}: ${feature.id} has an invalid boundary level.`
+  );
+  assert(
+    properties.detail &&
+      (properties.detail.maximumCameraHeight === null ||
+        (Number.isFinite(properties.detail.maximumCameraHeight) &&
+          properties.detail.maximumCameraHeight >= 0)),
+    `${layerId}: ${feature.id} has invalid progressive-detail metadata.`
+  );
   assert(
     Number.isInteger(properties.sourceId) && properties.sourceId > 0,
     `${layerId}: ${feature.id} has an invalid sourceId.`
@@ -154,9 +237,31 @@ async function validateManifest(manifestPath) {
     `${layerId}: feature count does not match the manifest.`
   );
 
+  const declaredGeometryTypes = new Set(manifest.data.geometryTypes);
+  assert(
+    declaredGeometryTypes.size > 0,
+    `${layerId}: at least one geometry type must be declared.`
+  );
+
   const ids = new Set();
   for (const feature of geojson.features) {
-    validatePointFeature(feature, layerId, ids);
+    assert(
+      declaredGeometryTypes.has(feature.geometry?.type),
+      `${layerId}: ${feature.id ?? "unknown feature"} uses an undeclared geometry type.`
+    );
+
+    if (feature.geometry?.type === "Point") {
+      validatePointFeature(feature, layerId, ids);
+    } else if (
+      feature.geometry?.type === "Polygon" ||
+      feature.geometry?.type === "MultiPolygon"
+    ) {
+      validateBoundaryFeature(feature, layerId, ids);
+    } else {
+      throw new Error(
+        `${layerId}: unsupported geometry type ${feature.geometry?.type}.`
+      );
+    }
   }
 
   return {
@@ -208,4 +313,8 @@ for (const layer of catalog.layers) {
   await stat(manifestPath);
 }
 
-console.log(`Validated data catalog: ${catalog.layers.length} layer.`);
+console.log(
+  `Validated data catalog: ${catalog.layers.length} ${
+    catalog.layers.length === 1 ? "layer" : "layers"
+  }.`
+);

@@ -11,14 +11,8 @@ import type {
   GlobeController,
   GlobeViewProps
 } from "../globe/types";
-import {
-  polygonFixtures,
-  routeFixtures,
-  type LongitudeLatitude,
-  type PolygonFixture,
-  type RouteFixture
-} from "../globe/fixtures";
-import type { PlaceFeature } from "../types/data";
+import { visibleBoundaries } from "../globe/boundaries";
+import type { BoundaryFeature, PlaceFeature } from "../types/data";
 import type { CameraState } from "../utils/urlState";
 
 const EARTH_RADIUS_METERS = 6_371_000;
@@ -55,24 +49,20 @@ function pointLabel(value: object): HTMLElement {
   return label;
 }
 
-function routeFromObject(value: object): RouteFixture {
-  return value as RouteFixture;
+function boundaryFromObject(value: object): BoundaryFeature {
+  return value as BoundaryFeature;
 }
 
-function polygonFromObject(value: object): PolygonFixture {
-  return value as PolygonFixture;
-}
-
-function coordinateFromObject(value: object): LongitudeLatitude {
-  return value as unknown as LongitudeLatitude;
-}
-
-function fixtureLabel(name: string, description: string): HTMLElement {
+function boundaryLabel(value: object): HTMLElement {
+  const boundary = boundaryFromObject(value);
   const label = document.createElement("span");
   const title = document.createElement("strong");
   const detail = document.createElement("span");
-  title.textContent = name;
-  detail.textContent = ` — ${description}`;
+  title.textContent = boundary.properties.name;
+  detail.textContent =
+    boundary.properties.level === "country"
+      ? ` — ${boundary.properties.region ?? "Country boundary"}`
+      : " — United States";
   label.append(title, detail);
   return label;
 }
@@ -93,11 +83,14 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
   function GlobeView(
     {
       places,
+      countries,
+      usStates,
       selectedId,
       initialCamera,
       reducedMotion,
-      showRoutes,
-      showRegions,
+      showCountries,
+      showUsStates,
+      showStateDetail,
       onSelect,
       onCameraChange,
       onReady,
@@ -210,32 +203,32 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
           .pointsTransitionDuration(reducedMotion ? 0 : 350)
           .pointLabel(pointLabel)
           .onPointClick((value) => onSelect(placeFromObject(value).id))
-          .pathsData(showRoutes ? [...routeFixtures] : [])
-          .pathPoints((value) => routeFromObject(value).coordinates)
-          .pathPointLng((value) => coordinateFromObject(value)[0])
-          .pathPointLat((value) => coordinateFromObject(value)[1])
-          .pathColor(() => "#7ee8fa")
-          .pathStroke(0.38)
-          .pathPointAlt(0.018)
-          .pathDashLength(0.7)
-          .pathDashGap(0.18)
-          .pathDashAnimateTime(reducedMotion ? 0 : 4_800)
-          .pathLabel((value) => {
-            const route = routeFromObject(value);
-            return fixtureLabel(route.name, route.description);
-          })
-          .polygonsData(showRegions ? [...polygonFixtures] : [])
-          .polygonCapColor(() => "rgba(246, 191, 103, 0.24)")
-          .polygonSideColor(() => "rgba(246, 191, 103, 0.08)")
-          .polygonStrokeColor(() => "#f6bf67")
-          .polygonAltitude(0.008)
-          .polygonLabel((value) => {
-            const polygon = polygonFromObject(value);
-            return fixtureLabel(
-              polygon.properties.name,
-              polygon.properties.description
-            );
-          })
+          .polygonsData(
+            visibleBoundaries(
+              countries,
+              usStates,
+              showCountries,
+              showUsStates,
+              showStateDetail
+            )
+          )
+          .polygonCapColor((value) =>
+            boundaryFromObject(value).properties.level === "country"
+              ? "rgba(18, 37, 49, 0.14)"
+              : "rgba(246, 191, 103, 0.025)"
+          )
+          .polygonSideColor(() => "rgba(0, 0, 0, 0)")
+          .polygonStrokeColor((value) =>
+            boundaryFromObject(value).properties.level === "country"
+              ? "rgba(163, 207, 221, 0.72)"
+              : "rgba(246, 191, 103, 0.92)"
+          )
+          .polygonAltitude((value) =>
+            boundaryFromObject(value).properties.level === "country"
+              ? 0.003
+              : 0.006
+          )
+          .polygonLabel(boundaryLabel)
           .onGlobeClick(() => onSelect(null))
           .onZoom(() => {
             if (!disposed) publishCamera(globe, onCameraChange);
@@ -307,10 +300,22 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       const globe = globeRef.current;
       if (!globe) return;
 
-      globe
-        .pathsData(showRoutes ? [...routeFixtures] : [])
-        .polygonsData(showRegions ? [...polygonFixtures] : []);
-    }, [showRegions, showRoutes]);
+      globe.polygonsData(
+        visibleBoundaries(
+          countries,
+          usStates,
+          showCountries,
+          showUsStates,
+          showStateDetail
+        )
+      );
+    }, [
+      countries,
+      showCountries,
+      showStateDetail,
+      showUsStates,
+      usStates
+    ]);
 
     useEffect(() => {
       const globe = globeRef.current;
