@@ -1,9 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
 
-async function openPlaceDirectory(page: Page) {
-  await page.getByRole("button", { name: "Browse places" }).click();
+async function openAtlasSearch(page: Page) {
+  await page.getByRole("button", { name: "Explore atlas" }).click();
   await expect(
-    page.getByRole("searchbox", { name: "Search places" })
+    page.getByRole("searchbox", { name: "Search atlas" })
   ).toBeVisible();
 }
 
@@ -14,13 +14,13 @@ test("loads the accessible application shell", async ({ page }) => {
     page.getByRole("heading", { name: "World Populated Places" })
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Browse places" })
+    page.getByRole("button", { name: "Explore atlas" })
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Focus globe view" })
   ).not.toBeVisible();
   await expect(
-    page.getByRole("searchbox", { name: "Search places" })
+    page.getByRole("searchbox", { name: "Search atlas" })
   ).not.toBeVisible();
   await expect(page.locator(".globe-statusbar")).toHaveCSS(
     "background-color",
@@ -36,19 +36,21 @@ test("loads the accessible application shell", async ({ page }) => {
   );
   await expect(page.locator(".globe-statusbar")).toHaveCSS("padding", "0px");
 
-  await openPlaceDirectory(page);
-  await expect(page.getByText("243 places available.")).toBeVisible();
+  await openAtlasSearch(page);
+  await expect(
+    page.getByText("243 places and 228 regions available.")
+  ).toBeVisible();
 });
 
 test("searches, selects, shares, and closes a place", async ({ page }) => {
   await page.goto("/");
-  await openPlaceDirectory(page);
+  await openAtlasSearch(page);
 
-  const search = page.getByRole("searchbox", { name: "Search places" });
+  const search = page.getByRole("searchbox", { name: "Search atlas" });
   await search.fill("Chicago");
 
   await expect(
-    page.getByText("1 of 243 places match “Chicago”.")
+    page.getByText("1 of 471 atlas items match “Chicago”.")
   ).toBeVisible();
 
   const chicago = page.getByRole("button", { name: /^Chicago/ });
@@ -64,15 +66,46 @@ test("searches, selects, shares, and closes a place", async ({ page }) => {
 
   await expect(
     page.getByRole("heading", {
-      name: "Choose a point on the globe or from the list."
+      name: "Choose a place, country, or state."
     })
   ).toBeVisible();
   await expect(chicago).not.toHaveAttribute("aria-current", "true");
   await expect(page).not.toHaveURL(/[?&]place=/);
 
-  await page.getByRole("button", { name: "Clear place search" }).click();
+  await page.getByRole("button", { name: "Clear atlas search" }).click();
   await expect(search).toHaveValue("");
-  await expect(page.getByText("243 places available.")).toBeVisible();
+  await expect(
+    page.getByText("243 places and 228 regions available.")
+  ).toBeVisible();
+});
+
+test("searches and selects a boundary region", async ({ page }) => {
+  await page.goto("/");
+  await openAtlasSearch(page);
+
+  const search = page.getByRole("searchbox", { name: "Search atlas" });
+  await search.fill("Texas");
+
+  await expect(
+    page.getByText("2 of 471 atlas items match “Texas”.")
+  ).toBeVisible();
+
+  const texas = page.getByRole("button", { name: /^Texas/ });
+  await texas.click();
+
+  await expect(
+    page.getByRole("heading", { name: "Texas", exact: true })
+  ).toBeVisible();
+  await expect(
+    page.locator(".details-panel").getByText("U.S. state", { exact: true })
+  ).toBeVisible();
+  await expect(page.locator(".details-panel").getByText("US-TX")).toBeVisible();
+  await expect(texas).toHaveAttribute("aria-current", "true");
+  await expect(page).toHaveURL(/[?&]boundary=natural-earth%3Aus-state%3A/);
+  await expect(page).not.toHaveURL(/[?&]place=/);
+
+  await page.getByRole("button", { name: "Close region details" }).click();
+  await expect(page).not.toHaveURL(/[?&]boundary=/);
 });
 
 test("supports keyboard globe movement and shareable camera state", async ({
@@ -135,17 +168,17 @@ test("removes the retired engine query parameter", async ({ page }) => {
 
 test("filters places and can reset an empty result", async ({ page }) => {
   await page.goto("/");
-  await openPlaceDirectory(page);
+  await openAtlasSearch(page);
 
   const capitals = page.getByRole("button", { name: "Capitals" });
   const allPlaces = page.getByRole("button", { name: "All", exact: true });
-  const search = page.getByRole("searchbox", { name: "Search places" });
+  const search = page.getByRole("searchbox", { name: "Search atlas" });
 
   await capitals.click();
   await expect(capitals).toHaveAttribute("aria-pressed", "true");
 
   await search.fill("Chicago");
-  await expect(page.getByText("No places found")).toBeVisible();
+  await expect(page.getByText("No atlas items found")).toBeVisible();
 
   await page.getByRole("button", { name: "Reset filters" }).click();
   await expect(allPlaces).toHaveAttribute("aria-pressed", "true");
@@ -255,14 +288,14 @@ test("keeps the workspace within desktop and mobile viewports", async ({
     page.getByRole("heading", { name: "World Populated Places" })
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Browse places" })
+    page.getByRole("button", { name: "Explore atlas" })
   ).toBeVisible();
 });
 
 test("collapses panels and expands the globe workspace", async ({ page }) => {
   await page.goto("/");
 
-  const search = page.getByRole("searchbox", { name: "Search places" });
+  const search = page.getByRole("searchbox", { name: "Search atlas" });
   await expect(search).not.toBeVisible();
   await expect(
     page.getByRole("button", { name: "Focus globe view" })
@@ -273,14 +306,14 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
   );
   expect(initialGlobeWidth).toBeGreaterThan(1200);
 
-  await openPlaceDirectory(page);
+  await openAtlasSearch(page);
   await expect(search).toBeVisible();
 
   await page
-    .getByRole("button", { name: "Collapse place directory" })
+    .getByRole("button", { name: "Collapse atlas browser" })
     .click({ force: true });
   await expect(search).not.toBeVisible();
-  await openPlaceDirectory(page);
+  await openAtlasSearch(page);
 
   await search.fill("Chicago");
   await page.getByRole("button", { name: /^Chicago/ }).click();
@@ -289,13 +322,13 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
   ).toBeVisible();
 
   await page
-    .getByRole("button", { name: "Collapse place details" })
+    .getByRole("button", { name: "Collapse details panel" })
     .click({ force: true });
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })
   ).not.toBeVisible();
   await page
-    .getByRole("button", { name: "Open place details" })
+    .getByRole("button", { name: "Open details" })
     .click({ force: true });
   await expect(
     page.getByRole("heading", { name: "Chicago", exact: true })
@@ -309,10 +342,10 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
     page.getByRole("heading", { name: "Chicago", exact: true })
   ).not.toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Browse places" })
+    page.getByRole("button", { name: "Explore atlas" })
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Open place details" })
+    page.getByRole("button", { name: "Open details" })
   ).toBeVisible();
 
   const globeWidth = await page.locator(".globe-stage").evaluate(
@@ -320,9 +353,9 @@ test("collapses panels and expands the globe workspace", async ({ page }) => {
   );
   expect(globeWidth).toBeGreaterThan(1200);
 
-  await openPlaceDirectory(page);
+  await openAtlasSearch(page);
   await page
-    .getByRole("button", { name: "Open place details" })
+    .getByRole("button", { name: "Open details" })
     .click({ force: true });
   await expect(search).toBeVisible();
   await expect(

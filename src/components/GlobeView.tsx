@@ -13,6 +13,7 @@ import type {
 } from "../globe/types";
 import { visibleBoundaries } from "../globe/boundaries";
 import type { BoundaryFeature, PlaceFeature } from "../types/data";
+import { boundaryCamera } from "../utils/boundary";
 import type { CameraState } from "../utils/urlState";
 
 const EARTH_RADIUS_METERS = 6_371_000;
@@ -85,13 +86,16 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       places,
       countries,
       usStates,
-      selectedId,
+      selectedPlaceId,
+      selectedBoundaryId,
       initialCamera,
       reducedMotion,
       showCountries,
       showUsStates,
       showStateDetail,
-      onSelect,
+      onSelectPlace,
+      onSelectBoundary,
+      onClearSelection,
       onCameraChange,
       onReady,
       onError
@@ -101,9 +105,11 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const interactionRef = useRef<HTMLDivElement>(null);
     const globeRef = useRef<GlobeInstance | null>(null);
-    const selectedIdRef = useRef(selectedId);
+    const selectedPlaceIdRef = useRef(selectedPlaceId);
+    const selectedBoundaryIdRef = useRef(selectedBoundaryId);
     const reducedMotionRef = useRef(reducedMotion);
-    selectedIdRef.current = selectedId;
+    selectedPlaceIdRef.current = selectedPlaceId;
+    selectedBoundaryIdRef.current = selectedBoundaryId;
     reducedMotionRef.current = reducedMotion;
 
     useImperativeHandle(
@@ -185,24 +191,26 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
           .pointLng(pointLongitude)
           .pointColor((value) => {
             const place = placeFromObject(value);
-            return place.id === selectedIdRef.current
+            return place.id === selectedPlaceIdRef.current
               ? "#7ee8fa"
               : place.properties.capitalLevel === "national"
                 ? "#f6bf67"
                 : "#d8a969";
           })
           .pointAltitude((value) =>
-            placeFromObject(value).id === selectedIdRef.current ? 0.035 : 0.012
+            placeFromObject(value).id === selectedPlaceIdRef.current
+              ? 0.035
+              : 0.012
           )
           .pointRadius((value) => {
             const place = placeFromObject(value);
-            if (place.id === selectedIdRef.current) return 0.38;
+            if (place.id === selectedPlaceIdRef.current) return 0.38;
             return place.properties.capitalLevel === "national" ? 0.2 : 0.13;
           })
           .pointResolution(10)
           .pointsTransitionDuration(reducedMotion ? 0 : 350)
           .pointLabel(pointLabel)
-          .onPointClick((value) => onSelect(placeFromObject(value).id))
+          .onPointClick((value) => onSelectPlace(placeFromObject(value).id))
           .polygonsData(
             visibleBoundaries(
               countries,
@@ -212,24 +220,35 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
               showStateDetail
             )
           )
-          .polygonCapColor((value) =>
-            boundaryFromObject(value).properties.level === "country"
+          .polygonCapColor((value) => {
+            const boundary = boundaryFromObject(value);
+            if (boundary.id === selectedBoundaryIdRef.current) {
+              return "rgba(115, 229, 209, 0.18)";
+            }
+            return boundary.properties.level === "country"
               ? "rgba(18, 37, 49, 0.14)"
-              : "rgba(246, 191, 103, 0.025)"
-          )
+              : "rgba(246, 191, 103, 0.025)";
+          })
           .polygonSideColor(() => "rgba(0, 0, 0, 0)")
-          .polygonStrokeColor((value) =>
-            boundaryFromObject(value).properties.level === "country"
+          .polygonStrokeColor((value) => {
+            const boundary = boundaryFromObject(value);
+            if (boundary.id === selectedBoundaryIdRef.current) {
+              return "#73e5d1";
+            }
+            return boundary.properties.level === "country"
               ? "rgba(163, 207, 221, 0.72)"
-              : "rgba(246, 191, 103, 0.92)"
-          )
-          .polygonAltitude((value) =>
-            boundaryFromObject(value).properties.level === "country"
-              ? 0.003
-              : 0.006
-          )
+              : "rgba(246, 191, 103, 0.92)";
+          })
+          .polygonAltitude((value) => {
+            const boundary = boundaryFromObject(value);
+            if (boundary.id === selectedBoundaryIdRef.current) return 0.012;
+            return boundary.properties.level === "country" ? 0.003 : 0.006;
+          })
           .polygonLabel(boundaryLabel)
-          .onGlobeClick(() => onSelect(null))
+          .onPolygonClick((value) =>
+            onSelectBoundary(boundaryFromObject(value).id)
+          )
+          .onGlobeClick(onClearSelection)
           .onZoom(() => {
             if (!disposed) publishCamera(globe, onCameraChange);
           })
@@ -288,10 +307,12 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       }
     }, [
       initialCamera,
+      onClearSelection,
       onCameraChange,
       onError,
       onReady,
-      onSelect,
+      onSelectBoundary,
+      onSelectPlace,
       places,
       reducedMotion
     ]);
@@ -300,7 +321,8 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       const globe = globeRef.current;
       if (!globe) return;
 
-      globe.polygonsData(
+      globe
+        .polygonsData(
         visibleBoundaries(
           countries,
           usStates,
@@ -308,9 +330,33 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
           showUsStates,
           showStateDetail
         )
-      );
+        )
+        .polygonCapColor((value) => {
+          const boundary = boundaryFromObject(value);
+          if (boundary.id === selectedBoundaryId) {
+            return "rgba(115, 229, 209, 0.18)";
+          }
+          return boundary.properties.level === "country"
+            ? "rgba(18, 37, 49, 0.14)"
+            : "rgba(246, 191, 103, 0.025)";
+        })
+        .polygonStrokeColor((value) => {
+          const boundary = boundaryFromObject(value);
+          if (boundary.id === selectedBoundaryId) {
+            return "#73e5d1";
+          }
+          return boundary.properties.level === "country"
+            ? "rgba(163, 207, 221, 0.72)"
+            : "rgba(246, 191, 103, 0.92)";
+        })
+        .polygonAltitude((value) => {
+          const boundary = boundaryFromObject(value);
+          if (boundary.id === selectedBoundaryId) return 0.012;
+          return boundary.properties.level === "country" ? 0.003 : 0.006;
+        });
     }, [
       countries,
+      selectedBoundaryId,
       showCountries,
       showStateDetail,
       showUsStates,
@@ -324,23 +370,23 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
       globe
         .pointColor((value) => {
           const place = placeFromObject(value);
-          return place.id === selectedId
+          return place.id === selectedPlaceId
             ? "#7ee8fa"
             : place.properties.capitalLevel === "national"
               ? "#f6bf67"
               : "#d8a969";
         })
         .pointAltitude((value) =>
-          placeFromObject(value).id === selectedId ? 0.035 : 0.012
+          placeFromObject(value).id === selectedPlaceId ? 0.035 : 0.012
         )
         .pointRadius((value) => {
           const place = placeFromObject(value);
-          if (place.id === selectedId) return 0.38;
+          if (place.id === selectedPlaceId) return 0.38;
           return place.properties.capitalLevel === "national" ? 0.2 : 0.13;
         });
 
-      const selectedPlace = selectedId
-        ? places.find((place) => place.id === selectedId)
+      const selectedPlace = selectedPlaceId
+        ? places.find((place) => place.id === selectedPlaceId)
         : null;
 
       globe
@@ -358,8 +404,37 @@ export const GlobeView = forwardRef<GlobeController, GlobeViewProps>(
           { lat: latitude, lng: longitude, altitude: 0.72 },
           reducedMotion ? 0 : 900
         );
+        publishCamera(globe, onCameraChange);
       }
-    }, [places, reducedMotion, selectedId]);
+    }, [onCameraChange, places, reducedMotion, selectedPlaceId]);
+
+    useEffect(() => {
+      const globe = globeRef.current;
+      if (!globe || !selectedBoundaryId) return;
+
+      const selectedBoundary = [...countries, ...usStates].find(
+        (boundary) => boundary.id === selectedBoundaryId
+      );
+
+      if (!selectedBoundary) return;
+
+      const nextCamera = boundaryCamera(selectedBoundary);
+      globe.pointOfView(
+        {
+          lat: nextCamera.latitude,
+          lng: nextCamera.longitude,
+          altitude: heightToAltitude(nextCamera.height)
+        },
+        reducedMotion ? 0 : 900
+      );
+      publishCamera(globe, onCameraChange);
+    }, [
+      countries,
+      onCameraChange,
+      reducedMotion,
+      selectedBoundaryId,
+      usStates
+    ]);
 
     function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
       const globe = globeRef.current;

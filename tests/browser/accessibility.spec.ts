@@ -29,10 +29,10 @@ async function waitForStableInterface(page: Page) {
   );
 }
 
-async function openPlaceDirectory(page: Page) {
-  await page.getByRole("button", { name: "Browse places" }).click();
+async function openAtlasSearch(page: Page) {
+  await page.getByRole("button", { name: "Explore atlas" }).click();
   await expect(
-    page.getByRole("searchbox", { name: "Search places" })
+    page.getByRole("searchbox", { name: "Search atlas" })
   ).toBeVisible();
 }
 
@@ -49,10 +49,10 @@ test("has no automated WCAG violations with a selected place", async ({
 }) => {
   await page.goto("/");
   await waitForStableInterface(page);
-  await openPlaceDirectory(page);
+  await openAtlasSearch(page);
 
   await page
-    .getByRole("searchbox", { name: "Search places" })
+    .getByRole("searchbox", { name: "Search atlas" })
     .fill("Chicago");
   await page.getByRole("button", { name: /^Chicago/ }).click();
   await expect(

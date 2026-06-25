@@ -6,6 +6,7 @@ export interface CameraState {
 
 export interface GlobeUrlState {
   placeId: string | null;
+  boundaryId: string | null;
   camera: CameraState | null;
 }
 
@@ -38,6 +39,7 @@ export function readUrlState(search: string): GlobeUrlState {
 
   return {
     placeId: params.get("place"),
+    boundaryId: params.get("boundary"),
     camera
   };
 }
@@ -46,6 +48,7 @@ export function writeUrlState(
   currentUrl: string,
   updates: {
     placeId?: string | null;
+    boundaryId?: string | null;
     camera?: CameraState;
   }
 ): string {
@@ -56,6 +59,14 @@ export function writeUrlState(
       url.searchParams.set("place", updates.placeId);
     } else {
       url.searchParams.delete("place");
+    }
+  }
+
+  if ("boundaryId" in updates) {
+    if (updates.boundaryId) {
+      url.searchParams.set("boundary", updates.boundaryId);
+    } else {
+      url.searchParams.delete("boundary");
     }
   }
 

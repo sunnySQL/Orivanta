@@ -15,13 +15,16 @@ export interface GlobeViewProps {
   places: PlaceFeature[];
   countries: BoundaryFeature[];
   usStates: BoundaryFeature[];
-  selectedId: string | null;
+  selectedPlaceId: string | null;
+  selectedBoundaryId: string | null;
   initialCamera: CameraState | null;
   reducedMotion: boolean;
   showCountries: boolean;
   showUsStates: boolean;
   showStateDetail: boolean;
-  onSelect: (id: string | null) => void;
+  onSelectPlace: (id: string) => void;
+  onSelectBoundary: (id: string) => void;
+  onClearSelection: () => void;
   onCameraChange: (camera: CameraState) => void;
   onReady: () => void;
   onError: (message: string) => void;

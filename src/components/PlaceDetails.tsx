@@ -1,4 +1,10 @@
-import type { LayerManifest, PlaceFeature } from "../types/data";
+import type { BoundaryFeature, LayerManifest, PlaceFeature } from "../types/data";
+import {
+  boundaryTypeLabel,
+  formatBoundaryCenter,
+  formatBoundaryDetailHint,
+  formatBoundaryLocation
+} from "../utils/boundary";
 import {
   formatCoordinates,
   formatPopulation,
@@ -8,9 +14,12 @@ import {
 
 interface PlaceDetailsProps {
   place: PlaceFeature | null;
+  boundary: BoundaryFeature | null;
   manifest: LayerManifest;
+  boundaryManifest: LayerManifest | null;
   placeCount: number;
   capitalCount: number;
+  boundaryCount: number;
   collapsed: boolean;
   onClose: () => void;
   onCollapse: () => void;
@@ -21,9 +30,12 @@ interface PlaceDetailsProps {
 
 export function PlaceDetails({
   place,
+  boundary,
   manifest,
+  boundaryManifest,
   placeCount,
   capitalCount,
+  boundaryCount,
   collapsed,
   onClose,
   onCollapse,
@@ -31,14 +43,14 @@ export function PlaceDetails({
   onOpenHelp,
   onShare
 }: PlaceDetailsProps) {
-  if (!place) {
+  if (!place && !boundary) {
     return (
       <aside className="details-panel details-placeholder" hidden={collapsed}>
         <button
           type="button"
           className="panel-collapse-button details-collapse-button"
           onClick={onCollapse}
-          aria-label="Collapse place details"
+          aria-label="Collapse details panel"
         >
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="m10 6 6 6-6 6" />
@@ -50,7 +62,7 @@ export function PlaceDetails({
           <span />
         </div>
         <p className="eyebrow">Ready to explore</p>
-        <h2>Choose a point on the globe or from the list.</h2>
+        <h2>Choose a place, country, or state.</h2>
         <p>
           Navigate a curated world atlas with synchronized spatial data,
           accessible details, and shareable views.
@@ -65,8 +77,8 @@ export function PlaceDetails({
             <dd>{capitalCount}</dd>
           </div>
           <div>
-            <dt>Coverage</dt>
-            <dd>Global</dd>
+            <dt>Regions</dt>
+            <dd>{boundaryCount}</dd>
           </div>
         </dl>
         <div className="placeholder-actions">
@@ -89,6 +101,120 @@ export function PlaceDetails({
     );
   }
 
+  if (boundary) {
+    const sourceUrl = boundaryManifest
+      ? safeExternalUrl(boundaryManifest.source.url)
+      : null;
+
+    return (
+      <aside
+        className="details-panel"
+        aria-labelledby="selected-boundary-title"
+        hidden={collapsed}
+      >
+        <button
+          type="button"
+          className="panel-collapse-button details-collapse-button"
+          onClick={onCollapse}
+          aria-label="Collapse details panel"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m10 6 6 6-6 6" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="close-button"
+          onClick={onClose}
+          aria-label="Close region details"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m6 6 12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <div className="details-header">
+          <span className="details-type details-type-boundary">
+            <span aria-hidden="true" />
+            {boundaryTypeLabel(boundary)}
+          </span>
+          <h2 id="selected-boundary-title">{boundary.properties.name}</h2>
+          <p className="details-location">
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M4 7.5 12 4l8 3.5-8 3.5-8-3.5Zm16 4.5-8 3.5L4 12m16 4.5L12 20l-8-3.5" />
+            </svg>
+            {formatBoundaryLocation(boundary)}
+          </p>
+        </div>
+
+        <dl className="details-grid">
+          <div>
+            <span className="metric-icon" aria-hidden="true">⌖</span>
+            <dt>Center point</dt>
+            <dd>{formatBoundaryCenter(boundary)}</dd>
+          </div>
+          <div>
+            <span className="metric-icon" aria-hidden="true">◇</span>
+            <dt>Code</dt>
+            <dd>{boundary.properties.code ?? "Not available"}</dd>
+          </div>
+          <div>
+            <span className="metric-icon" aria-hidden="true">◌</span>
+            <dt>Detail tier</dt>
+            <dd>{formatBoundaryDetailHint(boundary)}</dd>
+          </div>
+          <div>
+            <span className="metric-icon" aria-hidden="true">↗</span>
+            <dt>Source scale</dt>
+            <dd>{boundaryManifest?.source.scale ?? "Not available"}</dd>
+          </div>
+        </dl>
+
+        <div className="details-section-heading">
+          <span>About this region</span>
+          <span className="verified-badge">Verified source</span>
+        </div>
+        <p className="details-description">{boundary.properties.description}</p>
+
+        <div className="details-actions">
+          <button type="button" className="primary-action" onClick={onShare}>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M8.5 12.5 15.5 8m-7 3.5 7 4.5M18 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12-1a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" />
+            </svg>
+            Share this view
+          </button>
+          <button
+            type="button"
+            className="secondary-action"
+            onClick={onExploreRandom}
+          >
+            Random place
+          </button>
+        </div>
+
+        {sourceUrl ? (
+          <a
+            className="source-link"
+            href={sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span>
+              <strong>{boundaryManifest?.source.publisher}</strong>
+              <small>View source information</small>
+            </span>
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M14 5h5v5M10 14 19 5M19 14v5H5V5h5" />
+            </svg>
+          </a>
+        ) : null}
+      </aside>
+    );
+  }
+
+  if (!place) {
+    return null;
+  }
+
   const sourceUrl = safeExternalUrl(manifest.source.url);
 
   return (
@@ -101,7 +227,7 @@ export function PlaceDetails({
         type="button"
         className="panel-collapse-button details-collapse-button"
         onClick={onCollapse}
-        aria-label="Collapse place details"
+        aria-label="Collapse details panel"
       >
         <svg aria-hidden="true" viewBox="0 0 24 24">
           <path d="m10 6 6 6-6 6" />

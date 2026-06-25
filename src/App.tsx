@@ -19,6 +19,7 @@ import { isStateDetailVisible } from "./globe/boundaries";
 import type { GlobeController } from "./globe/types";
 import { useReducedMotion } from "./hooks/useReducedMotion";
 import type {
+  BoundaryFeature,
   LoadedBoundaryLayers,
   LoadedLayer,
   PlaceFeature
@@ -82,6 +83,9 @@ export default function App() {
   const [filter, setFilter] = useState<PlaceFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(
     initialUrlState.placeId
+  );
+  const [selectedBoundaryId, setSelectedBoundaryId] = useState<string | null>(
+    initialUrlState.placeId ? null : initialUrlState.boundaryId
   );
   const [globeReady, setGlobeReady] = useState(false);
   const [globeError, setGlobeError] = useState<string | null>(null);
@@ -174,6 +178,11 @@ export default function App() {
     boundaryLoadState.status === "ready"
       ? boundaryLoadState.layers.usStates.boundaries
       : [];
+  const boundaries = useMemo(
+    () => [...countries, ...usStates],
+    [countries, usStates]
+  );
+  const boundaryCount = boundaries.length;
   const stateDetailVisible = isStateDetailVisible(
     camera?.height ?? null,
     showUsStates
@@ -189,6 +198,17 @@ export default function App() {
     () => places.find((place) => place.id === selectedId) ?? null,
     [places, selectedId]
   );
+  const selectedBoundary = useMemo(
+    () =>
+      boundaries.find((boundary) => boundary.id === selectedBoundaryId) ?? null,
+    [boundaries, selectedBoundaryId]
+  );
+  const selectedBoundaryManifest =
+    selectedBoundary && boundaryLoadState.status === "ready"
+      ? selectedBoundary.properties.level === "country"
+        ? boundaryLoadState.layers.countries.manifest
+        : boundaryLoadState.layers.usStates.manifest
+      : null;
 
   useEffect(() => {
     if (
@@ -205,14 +225,71 @@ export default function App() {
     }
   }, [loadState, selectedId]);
 
-  const selectPlace = useCallback((id: string | null) => {
-    setSelectedId(id);
+  useEffect(() => {
+    if (
+      boundaryLoadState.status === "ready" &&
+      selectedBoundaryId &&
+      !boundaries.some((boundary) => boundary.id === selectedBoundaryId)
+    ) {
+      setSelectedBoundaryId(null);
+      window.history.replaceState(
+        null,
+        "",
+        writeUrlState(window.location.href, { boundaryId: null })
+      );
+    }
+  }, [boundaries, boundaryLoadState.status, selectedBoundaryId]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedId(null);
+    setSelectedBoundaryId(null);
     window.history.replaceState(
       null,
       "",
-      writeUrlState(window.location.href, { placeId: id })
+      writeUrlState(window.location.href, {
+        placeId: null,
+        boundaryId: null
+      })
     );
   }, []);
+
+  const selectPlace = useCallback((id: string) => {
+    setSelectedId(id);
+    setSelectedBoundaryId(null);
+    window.history.replaceState(
+      null,
+      "",
+      writeUrlState(window.location.href, {
+        placeId: id,
+        boundaryId: null
+      })
+    );
+  }, []);
+
+  const selectBoundary = useCallback(
+    (id: string) => {
+      const boundary = boundaries.find((candidate) => candidate.id === id);
+
+      if (boundary?.properties.level === "country") {
+        setShowCountries(true);
+      }
+      if (boundary?.properties.level === "us-state") {
+        setShowUsStates(true);
+      }
+
+      setSelectedBoundaryId(id);
+      setSelectedId(null);
+      window.history.replaceState(
+        null,
+        "",
+        writeUrlState(window.location.href, {
+          placeId: null,
+          boundaryId: id
+        })
+      );
+    },
+    [boundaries]
+  );
 
   const updateCamera = useCallback((nextCamera: CameraState) => {
     setCamera(nextCamera);
@@ -238,13 +315,19 @@ export default function App() {
   }, []);
 
   const selectPlaceAndReveal = useCallback(
-    (id: string | null) => {
+    (id: string) => {
       selectPlace(id);
-      if (id) {
-        setDetailsOpen(true);
-      }
+      setDetailsOpen(true);
     },
     [selectPlace]
+  );
+
+  const selectBoundaryAndReveal = useCallback(
+    (id: string) => {
+      selectBoundary(id);
+      setDetailsOpen(true);
+    },
+    [selectBoundary]
   );
 
   const exploreRandom = useCallback(() => {
@@ -307,8 +390,8 @@ export default function App() {
       if (event.key === "Escape") {
         if (showHelp) {
           setShowHelp(false);
-        } else if (selectedId) {
-          selectPlace(null);
+        } else if (selectedId || selectedBoundaryId) {
+          clearSelection();
         }
         return;
       }
@@ -328,10 +411,14 @@ export default function App() {
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [selectPlace, selectedId, showHelp]);
+  }, [clearSelection, selectedBoundaryId, selectedId, showHelp]);
 
   function handlePlaceSelect(place: PlaceFeature) {
     selectPlaceAndReveal(place.id);
+  }
+
+  function handleBoundarySelect(boundary: BoundaryFeature) {
+    selectBoundaryAndReveal(boundary.id);
   }
 
   if (loadState.status === "loading") {
@@ -366,7 +453,7 @@ export default function App() {
   return (
     <div className="app-shell">
       <a className="skip-link" href="#place-browser-title">
-        Skip to place browser
+        Skip to atlas search
       </a>
 
       <header className="topbar">
@@ -490,7 +577,7 @@ export default function App() {
             <dl className="shortcut-list">
               <div>
                 <dt><kbd>/</kbd></dt>
-                <dd>Search places</dd>
+                <dd>Search atlas</dd>
               </div>
               <div>
                 <dt><kbd>?</kbd></dt>
@@ -526,14 +613,18 @@ export default function App() {
       >
         <PlaceList
           places={places}
+          countries={countries}
+          usStates={usStates}
           query={query}
           filter={filter}
           selectedId={selectedId}
+          selectedBoundaryId={selectedBoundaryId}
           collapsed={!directoryOpen}
           searchInputRef={searchInputRef}
           onQueryChange={setQuery}
           onFilterChange={setFilter}
           onSelect={handlePlaceSelect}
+          onSelectBoundary={handleBoundarySelect}
           onCollapse={() => setDirectoryOpen(false)}
         />
 
@@ -556,7 +647,7 @@ export default function App() {
           {globeError ? (
             <div className="globe-fallback" role="status">
               <p className="eyebrow">3D view unavailable</p>
-              <h2>The place browser still works.</h2>
+              <h2>The atlas search still works.</h2>
               <p>{globeError}</p>
             </div>
           ) : (
@@ -565,7 +656,7 @@ export default function App() {
                 fallback={
                   <div className="globe-fallback" role="status">
                     <p className="eyebrow">Starting 3D view</p>
-                    <h2>The place browser is ready.</h2>
+                    <h2>The atlas search is ready.</h2>
                     <p>Loading the globe engine…</p>
                   </div>
                 }
@@ -575,13 +666,16 @@ export default function App() {
                   places={places}
                   countries={countries}
                   usStates={usStates}
-                  selectedId={selectedId}
+                  selectedPlaceId={selectedId}
+                  selectedBoundaryId={selectedBoundaryId}
                   initialCamera={initialUrlState.camera}
                   reducedMotion={reducedMotion}
                   showCountries={showCountries}
                   showUsStates={showUsStates}
                   showStateDetail={stateDetailVisible}
-                  onSelect={selectPlaceAndReveal}
+                  onSelectPlace={selectPlaceAndReveal}
+                  onSelectBoundary={selectBoundaryAndReveal}
+                  onClearSelection={clearSelection}
                   onCameraChange={updateCamera}
                   onReady={handleGlobeReady}
                   onError={handleGlobeError}
@@ -649,20 +743,20 @@ export default function App() {
                 type="button"
                 className="panel-launcher panel-launcher-left"
                 onClick={() => setDirectoryOpen(true)}
-                aria-label="Browse places"
+                aria-label="Explore atlas"
               >
                 <svg aria-hidden="true" viewBox="0 0 24 24">
                   <path d="M4 5h16M4 12h16M4 19h10" />
                 </svg>
-                <span>Browse places</span>
+                <span>Explore atlas</span>
               </button>
             ) : null}
-            {!detailsOpen && selectedPlace ? (
+            {!detailsOpen && (selectedPlace || selectedBoundary) ? (
               <button
                 type="button"
                 className="panel-launcher panel-launcher-right"
                 onClick={() => setDetailsOpen(true)}
-                aria-label="Open place details"
+                aria-label="Open details"
               >
                 <span>Details</span>
                 <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -675,11 +769,14 @@ export default function App() {
 
         <PlaceDetails
           place={selectedPlace}
+          boundary={selectedBoundary}
           manifest={manifest}
+          boundaryManifest={selectedBoundaryManifest}
           placeCount={places.length}
           capitalCount={capitalCount}
+          boundaryCount={boundaryCount}
           collapsed={!detailsOpen}
-          onClose={() => selectPlace(null)}
+          onClose={clearSelection}
           onCollapse={() => setDetailsOpen(false)}
           onExploreRandom={exploreRandom}
           onOpenHelp={() => setShowHelp(true)}
@@ -694,6 +791,8 @@ export default function App() {
             ? "The view link could not be copied."
             : selectedPlace
               ? `${selectedPlace.properties.name}, ${selectedPlace.properties.countryName}, selected.`
+              : selectedBoundary
+                ? `${selectedBoundary.properties.name}, ${selectedBoundary.properties.level === "country" ? "country" : "U.S. state"}, selected.`
               : ""}
       </div>
     </div>
